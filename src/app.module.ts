@@ -8,19 +8,17 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { PrismaModule } from 'prisma/prisma.module';
+import { RegisterModule } from '@register/register.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      autoSchemaFile: true, // for code-first
-      driver: ApolloDriver,
-    }),
     AuthModule,
     UsersModule,
     PrismaModule,
+    RegisterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
