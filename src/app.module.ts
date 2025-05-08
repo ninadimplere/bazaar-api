@@ -10,6 +10,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RegisterModule } from '@register/register.module';
 import { CategoryModule } from 'category/category.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CategoryModule } from 'category/category.module';
     PrismaModule,
     RegisterModule,
     CategoryModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

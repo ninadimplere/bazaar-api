@@ -24,6 +24,8 @@ model User {
   isActive     Boolean? @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  reviews      Review[]
 }
 
 model Category {
@@ -36,4 +38,31 @@ model Category {
   isActive  Boolean    @default(true)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  price       Float
+  category    String?
+  imageUrl    String?
+  sellerId    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviews     Review[]
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  userId      String
+  rating      Int      @default(0)
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product     Product  @relation(fields: [productId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
 }
