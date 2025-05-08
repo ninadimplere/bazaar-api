@@ -13,6 +13,11 @@
     "paths": {
       "@auth/*": ["auth/*"],
       "@users/*": ["users/*"],
+      "@enums/*": ["enums/*"],
+      "@firebase/*": ["firebase/*"],
+      "@prisma/*": ["prisma/*"],
+      "@products/*": ["products/*"],
+      "@register/*": ["register/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
