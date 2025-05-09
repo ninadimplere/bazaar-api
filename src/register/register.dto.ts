@@ -10,8 +10,4 @@ export class RegisterDto {
 
   @IsEnum(Role)
   role: Role;
-
-  @ValidateIf((o) => o.role === Role.SELLER)
-  @IsEnum(AccountType)
-  accountType?: AccountType;
 }

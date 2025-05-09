@@ -31,14 +31,16 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String?  @unique
-  password  String?
-  role      Role[]   @default([])
-  isActive  Boolean? @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  seller    Seller?
+  id           String        @id @default(cuid())
+  email        String?       @unique
+  password     String?
+  role         Role[]        @default([])
+  isActive     Boolean?      @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  seller       Seller?
+  addresses    Address[]     @relation("UserAddresses")
+  bankAccounts BankAccount[] @relation("UserBankAccounts")
 }
 
 model BankAccount {
@@ -46,8 +48,8 @@ model BankAccount {
   accountNumber String
   ifscCode      String
   bankVerified  Boolean  @default(false)
-  seller        Seller?  @relation("SellerBankAccounts", fields: [sellerId], references: [id])
-  sellerId      Int
+  user          User     @relation("UserBankAccounts", fields: [userId], references: [id])
+  userId        String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -60,8 +62,8 @@ model Address {
   state        String
   postalCode   String
   country      String
-  seller       Seller?  @relation("SellerAddresses", fields: [sellerId], references: [id])
-  sellerId     Int
+  user         User     @relation("UserAddresses", fields: [userId], references: [id])
+  userId       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -76,8 +78,6 @@ model Seller {
   accountType        AccountType?
   status             UserApprovalStatus  @default(PENDING)
   statusRemark       String?
-  addresses          Address[]           @relation("SellerAddresses")
-  bankAccounts       BankAccount[]       @relation("SellerBankAccounts")
   profileImageUrl    String?
   panNumber          String?
   aadhaarNumber      String?

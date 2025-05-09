@@ -16,7 +16,7 @@ export class RegisterService {
   ) {}
 
   async registerUser(dto: RegisterDto) {
-    const { email, password, role, accountType } = dto;
+    const { email, password, role } = dto;
 
     const existingUser = await this.prismaService.user.findUnique({
       where: { email },
@@ -33,17 +33,6 @@ export class RegisterService {
         },
       });
 
-      if (role === 'SELLER') {
-        await this.prismaService.seller.create({
-          data: {
-            userId: createdUser.id,
-            accountType,
-            status: 'PENDING',
-            approvedBy: null,
-          },
-        });
-      }
-
       return {
         message: 'User registered successfully',
         userId: createdUser.id,
@@ -54,7 +43,7 @@ export class RegisterService {
       throw new ConflictException(`User already registered as ${role}`);
     }
 
-    const updatedUser = await this.prismaService.user.update({
+    await this.prismaService.user.update({
       where: { email },
       data: {
         role: {
@@ -62,27 +51,6 @@ export class RegisterService {
         },
       },
     });
-
-    if (role === 'SELLER') {
-      const existingSeller = await this.prismaService.seller.findUnique({
-        where: { userId: existingUser.id },
-      });
-
-      if (existingSeller) {
-        throw new ConflictException(
-          'Seller profile already exists for this user',
-        );
-      }
-
-      await this.prismaService.seller.create({
-        data: {
-          userId: existingUser.id,
-          accountType,
-          status: 'PENDING',
-          approvedBy: null,
-        },
-      });
-    }
 
     return { message: `Role ${role} added to user`, userId: existingUser.id };
   }
