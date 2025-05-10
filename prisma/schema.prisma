@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl"]
@@ -14,16 +8,90 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum VerificationMethod {
+  INSTANT
+  MANUAL
+}
+
+enum UserApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
 model User {
-  id           String   @id @default(cuid())
-  email        String?  @unique
+  id           String        @id @default(cuid())
+  email        String?       @unique
   password     String?
-  status       String?  @default("active")
-  statusRemark String?
-  role         String[] @default([])
-  isActive     Boolean? @default(true)
+  role         Role[]        @default([])
+  isActive     Boolean?      @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  seller       Seller?
+  addresses    Address[]     @relation("UserAddresses")
+  bankAccounts BankAccount[] @relation("UserBankAccounts")
+}
+
+model BankAccount {
+  id            Int      @id @default(autoincrement())
+  accountNumber String
+  ifscCode      String
+  bankVerified  Boolean  @default(false)
+  user          User     @relation("UserBankAccounts", fields: [userId], references: [id])
+  userId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String
+  user         User     @relation("UserAddresses", fields: [userId], references: [id])
+  userId       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Seller {
+  id                 Int                 @id @default(autoincrement())
+  userId             String              @unique
+  user               User                @relation(fields: [userId], references: [id])
+  email              String?             @unique
+  fullName           String?
+  phoneNumber        String?
+  accountType        AccountType?
+  status             UserApprovalStatus  @default(PENDING)
+  statusRemark       String?
+  profileImageUrl    String?
+  panNumber          String?
+  aadhaarNumber      String?
+  gstNumber          String?
+  cinNumber          String?
+  panDocumentUrl     String?
+  aadhaarDocumentUrl String?
+  gstCertificateUrl  String?
+  cinDocumentUrl     String?
+  verificationMethod VerificationMethod?
+  verifiedAt         DateTime?
+  createdAt          DateTime            @default(now())
+  approvedBy         String?
+  updatedAt          DateTime            @updatedAt
 }
 
 model Category {

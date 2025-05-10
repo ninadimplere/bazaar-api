@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { RegisterDto } from './register.dto';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '@prisma/prisma.service';
 
@@ -9,7 +15,43 @@ export class RegisterService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async validateUser(): Promise<any> {
-    return this.prismaService.user.count({});
+  async registerUser(dto: RegisterDto) {
+    const { email, password, role } = dto;
+
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+
+    if (!existingUser) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const createdUser = await this.prismaService.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          role: [role],
+        },
+      });
+
+      return {
+        message: 'User registered successfully',
+        userId: createdUser.id,
+      };
+    }
+
+    if (existingUser.role.includes(role)) {
+      throw new ConflictException(`User already registered as ${role}`);
+    }
+
+    await this.prismaService.user.update({
+      where: { email },
+      data: {
+        role: {
+          set: [...existingUser.role, role],
+        },
+      },
+    });
+
+    return { message: `Role ${role} added to user`, userId: existingUser.id };
   }
 }
