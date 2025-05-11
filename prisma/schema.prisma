@@ -30,6 +30,19 @@ enum Role {
   ADMIN
 }
 
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
+  COMPLETED
+  FAILED
+  PROCESSING
+  REJECTED
+}
+
 model User {
   id           String        @id @default(cuid())
   email        String?       @unique
@@ -40,8 +53,9 @@ model User {
   updatedAt    DateTime      @updatedAt
   reviews      Review[]
   seller       Seller?
-  addresses    Address[]     @relation("UserAddresses")
-  bankAccounts BankAccount[] @relation("UserBankAccounts")
+  addresses    Address[]
+  bankAccounts BankAccount[]
+  Order        Order[]
 }
 
 model BankAccount {
@@ -49,7 +63,7 @@ model BankAccount {
   accountNumber String
   ifscCode      String
   bankVerified  Boolean  @default(false)
-  user          User     @relation("UserBankAccounts", fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
   userId        String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -63,7 +77,7 @@ model Address {
   state        String
   postalCode   String
   country      String
-  user         User     @relation("UserAddresses", fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
   userId       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -105,21 +119,28 @@ model Category {
   isActive  Boolean    @default(true)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  Product   Product[]
 }
 
 model Product {
-  id            Int            @id @default(autoincrement())
-  title         String
-  description   String?
-  price         Float
-  category      String?
-  imageUrl      String?
-  sellerId      Int
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  reviews       Review[]
-  cartProducts  CartProduct[] // Relation to CartProduct
-  orderProducts OrderProduct[] // Relation to OrderProduct
+  id                 Int            @id @default(autoincrement())
+  title              String
+  description        String?
+  markedPrice        Float
+  displayPrice       Float
+  discountPercentage Float?
+  displayPriority    Int?
+  categoryId         Int?
+  category           Category?      @relation(fields: [categoryId], references: [id])
+  imageUrl           String?
+  sellerId           Int
+  isActive           Boolean        @default(true)
+  slug               String         @unique
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  reviews            Review[]
+  cartProducts       CartProduct[] // Relation to CartProduct
+  orderProducts      OrderProduct[] // Relation to OrderProduct
 }
 
 model Review {
@@ -130,9 +151,8 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Cart {
@@ -155,8 +175,9 @@ model CartProduct {
 model Order {
   id        Int            @id @default(autoincrement())
   userId    String
+  user      User           @relation(fields: [userId], references: [id])
   products  OrderProduct[]
-  status    String         @default("pending")
+  status    OrderStatus    @default(PENDING)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 }
