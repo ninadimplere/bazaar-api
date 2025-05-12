@@ -20,4 +20,5 @@ export class ProductsController {
   async uploadProduct(@Body() createProductDto: CreateProductDto) {
     return this.productsService.createProduct(createProductDto);
   }
+
 }

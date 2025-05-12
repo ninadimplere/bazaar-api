@@ -47,15 +47,19 @@ model User {
   id           String        @id @default(cuid())
   email        String?       @unique
   password     String?
-  role         Role[]        @default([])
+  status       String?       @default("active")
+  statusRemark String?
+  role         String[]      @default([])
   isActive     Boolean?      @default(true)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
   reviews      Review[]
-  seller       Seller?
-  addresses    Address[]
-  bankAccounts BankAccount[]
-  Order        Order[]
+  coupons      Coupon[]      // Relation to Coupon (created by the user)
+  bankAccounts BankAccount[] // Relation to BankAccount
+  addresses    Address[]     // Relation to Address
+  seller       Seller?       // Relation to Seller
+  orders       Order[]       // Relation to Order
 }
 
 model BankAccount {
@@ -125,10 +129,10 @@ model Category {
 model Product {
   id                 Int            @id @default(autoincrement())
   title              String
-  description        String?
+  description        String
   markedPrice        Float
   displayPrice       Float
-  discountPercentage Float?
+  discountPercentage Float          @default(0)
   displayPriority    Int?
   categoryId         Int?
   category           Category?      @relation(fields: [categoryId], references: [id])
@@ -139,8 +143,9 @@ model Product {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   reviews            Review[]
-  cartProducts       CartProduct[] // Relation to CartProduct
+  cartProducts       CartProduct[]  // Relation to CartProduct
   orderProducts      OrderProduct[] // Relation to OrderProduct
+  coupons            Coupon[]       @relation("ProductCoupons") // Relation to multiple coupons
 }
 
 model Review {
@@ -159,6 +164,8 @@ model Cart {
   id        Int           @id @default(autoincrement())
   userId    String
   products  CartProduct[]
+  couponId  Int?         // Foreign key to Coupon
+  coupon    Coupon?      @relation(fields: [couponId], references: [id])
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 }
@@ -177,6 +184,8 @@ model Order {
   userId    String
   user      User           @relation(fields: [userId], references: [id])
   products  OrderProduct[]
+  couponId  Int?           // Foreign key to Coupon
+  coupon    Coupon?        @relation(fields: [couponId], references: [id])
   status    OrderStatus    @default(PENDING)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
@@ -189,4 +198,24 @@ model OrderProduct {
   quantity  Int     @default(1)
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
+}
+
+model Coupon {
+  id                Int          @id @default(autoincrement())
+  code              String       @unique
+  discountType      String       // 'PERCENTAGE' or 'FIXED'
+  discountValue     Float
+  validFrom         DateTime
+  validTo           DateTime
+  minPurchaseAmount Float?
+  maxUsage          Int?
+  perCustomerLimit  Int?
+  applicableProducts Product[]   @relation("ProductCoupons") // Relation to multiple products
+  createdBy         String       // Seller ID
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  carts             Cart[]       // Relation to Cart
+  orders            Order[]      // Relation to Order
+  user              User         @relation(fields: [createdBy], references: [id])
 }

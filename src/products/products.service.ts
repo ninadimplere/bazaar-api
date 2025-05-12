@@ -17,14 +17,38 @@ export class ProductsService {
   }
 
   async createProduct(createProductDto: CreateProductDto) {
-    const { title, description, price, category } = createProductDto;
+    const { title, description, markedPrice, displayPrice, discountPercentage, category, slug, sellerId } = createProductDto;
+  
+    // Validate category
+    const existingCategory = await this.prismaService.category.findUnique({
+      where: { slug: category },
+    });
+  
+    if (!existingCategory) {
+      throw new Error(`Category with slug "${category}" not found`);
+    }
+  
+    // Validate seller
+    const existingSeller = await this.prismaService.seller.findUnique({
+      where: { id: sellerId },
+    });
+  
+    if (!existingSeller) {
+      throw new Error(`Seller with ID "${sellerId}" not found`);
+    }
+  
     return this.prismaService.product.create({
       data: {
         title,
         description,
-        price: parseFloat(price), // Ensure price is cast to a float
-        category,
-        sellerId: 1, // Dummy sellerId
+        markedPrice,
+        displayPrice,
+        discountPercentage,
+        slug,
+        category: {
+          connect: { id: existingCategory.id },
+        },
+        sellerId,
       },
     });
   }
