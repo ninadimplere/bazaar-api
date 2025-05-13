@@ -43,6 +43,13 @@ enum OrderStatus {
   REJECTED
 }
 
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUTOFSTOCK
+  DRAFT
+}
+
 model User {
   id           String        @id @default(cuid())
   email        String?       @unique
@@ -135,10 +142,11 @@ model Product {
   discountPercentage Float          @default(0)
   displayPriority    Int?
   categoryId         Int?
+  availableQuantity  Int?
   category           Category?      @relation(fields: [categoryId], references: [id])
   imageUrl           String?
+  productStatus      ProductStatus  @default(DRAFT)
   sellerId           Int
-  isActive           Boolean        @default(true)
   slug               String         @unique
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt

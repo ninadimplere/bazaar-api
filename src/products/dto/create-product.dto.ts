@@ -1,27 +1,58 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsInt,
+  IsPositive,
+  IsEnum,
+  Min,
+} from 'class-validator';
+import { ProductStatus } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()
   title: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsNumber()
+  @IsPositive()
   markedPrice: number;
 
   @IsNumber()
+  @IsPositive()
   displayPrice: number;
 
+  @IsOptional()
   @IsNumber()
-  discountPercentage: number;
+  discountPercentage?: number;
 
+  @IsOptional()
+  @IsInt()
+  displayPriority?: number;
+
+  @IsOptional()
+  @IsInt()
+  categoryId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  availableQuantity?: number;
+
+  @IsOptional()
   @IsString()
-  category: string;
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsEnum(ProductStatus)
+  productStatus?: ProductStatus;
+
+  @IsInt()
+  sellerId: number;
 
   @IsString()
   slug: string;
-
-  @IsNumber()
-  sellerId: number;
 }

@@ -1,14 +1,17 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
 import { ProductsService } from './products.service';
 import { Product } from './products.entity';
+import { FilterProductsInput } from './dto/filter-products.input';
 
 @Resolver(() => Product)
 export class ProductsResolver {
   constructor(private productsService: ProductsService) {}
 
   @Query(() => [Product])
-  async products() {
-    return this.productsService.fetchAllProducts();
+  async products(
+    @Args('filter', { nullable: true }) filter: FilterProductsInput,
+  ) {
+    return this.productsService.getFilteredProducts(filter || {});
   }
 
   @Query(() => Product)
