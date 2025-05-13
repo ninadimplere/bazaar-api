@@ -11,6 +11,8 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { RegisterModule } from '@register/register.module';
 import { CategoryModule } from 'category/category.module';
 import { ProductsModule } from './products/products.module';
+import { CouponsModule } from 'coupons/coupons.module';
+import { CartModule } from 'cart/cart.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ProductsModule } from './products/products.module';
     RegisterModule,
     CategoryModule,
     ProductsModule,
+    CouponsModule,
+    CartModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,3 @@
-// src/product/dto/create-product.dto.ts
 import {
   IsString,
   IsOptional,
