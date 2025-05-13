@@ -13,9 +13,8 @@ export class CreateProductDto {
   @IsString()
   title: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
+  description: string;
 
   @IsNumber()
   @IsPositive()
@@ -33,9 +32,8 @@ export class CreateProductDto {
   @IsInt()
   displayPriority?: number;
 
-  @IsOptional()
   @IsInt()
-  categoryId?: number;
+  categoryId: number;
 
   @IsOptional()
   @IsInt()
