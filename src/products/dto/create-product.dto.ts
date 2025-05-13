@@ -1,15 +1,59 @@
-import { IsString, IsNumberString } from 'class-validator';
+// src/product/dto/create-product.dto.ts
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsInt,
+  IsPositive,
+  IsEnum,
+  Min,
+} from 'class-validator';
+import { ProductStatus } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()
   title: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
-  @IsNumberString()
-  price: string;
+  @IsNumber()
+  @IsPositive()
+  markedPrice: number;
+
+  @IsNumber()
+  @IsPositive()
+  displayPrice: number;
+
+  @IsOptional()
+  @IsNumber()
+  discountPercentage?: number;
+
+  @IsOptional()
+  @IsInt()
+  displayPriority?: number;
+
+  @IsOptional()
+  @IsInt()
+  categoryId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  availableQuantity?: number;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsEnum(ProductStatus)
+  productStatus?: ProductStatus;
+
+  @IsInt()
+  sellerId: number;
 
   @IsString()
-  category: string;
+  slug: string;
 }
