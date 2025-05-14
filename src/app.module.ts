@@ -14,6 +14,7 @@ import { ProductsModule } from './products/products.module';
 import { CouponsModule } from 'coupons/coupons.module';
 import { CartModule } from 'cart/cart.module';
 import { AddressModule } from './address/address.module';
+import { BankAccountModule } from 'bank-account/bank-account.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AddressModule } from './address/address.module';
     CouponsModule,
     CartModule,
     AddressModule,
+    BankAccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],
