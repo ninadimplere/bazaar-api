@@ -14,6 +14,21 @@ export class ProductsService {
   }
 
   async createProduct(createProductDto: CreateProductDto) {
+    const categoryExists = await this.prismaService.category.findUnique({
+      where: { id: createProductDto.categoryId },
+    });
+    if (!categoryExists) {
+      throw new Error('Category not found');
+    }
+
+    const sellerExists = await this.prismaService.seller.findUnique({
+      where: { id: createProductDto.sellerId },
+    });
+
+    if (!sellerExists) {
+      throw new Error('Seller not found');
+    }
+
     return this.prismaService.product.create({
       data: {
         ...createProductDto,
