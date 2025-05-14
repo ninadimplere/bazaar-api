@@ -78,6 +78,8 @@ model BankAccount {
   userId        String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@unique([accountNumber, userId])
 }
 
 model Address {
