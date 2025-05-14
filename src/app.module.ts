@@ -13,6 +13,7 @@ import { CategoryModule } from 'category/category.module';
 import { ProductsModule } from './products/products.module';
 import { CouponsModule } from 'coupons/coupons.module';
 import { CartModule } from 'cart/cart.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { CartModule } from 'cart/cart.module';
     CategoryModule,
     ProductsModule,
     CouponsModule,
-    CartModule
+    CartModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],

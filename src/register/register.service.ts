@@ -1,4 +1,3 @@
-import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './register.dto';
 import {
   BadRequestException,
@@ -23,12 +22,12 @@ export class RegisterService {
     });
 
     if (!existingUser) {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // const hashedPassword = await bcrypt.hash(password, 10);
 
       const createdUser = await this.prismaService.user.create({
         data: {
           email,
-          password: hashedPassword,
+          password: password,
           role: [role],
         },
       });
