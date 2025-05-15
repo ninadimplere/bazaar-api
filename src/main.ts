@@ -7,6 +7,11 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
   app.useGlobalPipes(new ValidationPipe());
+  app.enableCors({
+    origin: '*', // Allow all origins (use specific domain in production)
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // If you're using cookies/auth headers
+  });
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
