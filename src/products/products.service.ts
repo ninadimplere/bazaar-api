@@ -106,4 +106,48 @@ export class ProductsService {
       where: { categoryId },
     });
   }
+
+  // product.service.ts
+
+  async getProductCounts() {
+    const [
+      allProducts,
+      activeProducts,
+      inactiveProducts,
+      draftProducts,
+      outOfStockProducts,
+      lowStockProducts,
+    ] = await Promise.all([
+      this.prismaService.product.count(),
+      this.prismaService.product.count({
+        where: { productStatus: ProductStatus.ACTIVE },
+      }),
+      this.prismaService.product.count({
+        where: { productStatus: ProductStatus.INACTIVE },
+      }),
+      this.prismaService.product.count({
+        where: { productStatus: ProductStatus.DRAFT },
+      }),
+      this.prismaService.product.count({
+        where: { productStatus: ProductStatus.OUTOFSTOCK },
+      }),
+      this.prismaService.product.count({
+        where: {
+          availableQuantity: {
+            lt: 10,
+            gt: 0, // Optional: Exclude 0 qty if it's considered out-of-stock instead
+          },
+        },
+      }),
+    ]);
+
+    return {
+      allProducts,
+      activeProducts,
+      inactiveProducts,
+      draftProducts,
+      outOfStockProducts,
+      lowStockProducts,
+    };
+  }
 }

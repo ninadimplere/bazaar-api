@@ -35,6 +35,11 @@ export class ProductsController {
     });
   }
 
+  @Get('counts')
+  getCounts() {
+    return this.productsService.getProductCounts();
+  }
+
   @Get(':id')
   async getProductById(@Param('id') id: number) {
     return this.productsService.getProductById(id);
