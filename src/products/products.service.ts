@@ -43,6 +43,8 @@ export class ProductsService {
     productStatus?: ProductStatus;
     pageSize?: number;
     pageOffset?: number;
+    isLowStock?: string;
+    isOutOfStock?: string;
   }) {
     const {
       searchString,
@@ -51,6 +53,8 @@ export class ProductsService {
       productStatus,
       pageSize = 10,
       pageOffset = 0,
+      isLowStock,
+      isOutOfStock,
     } = options;
 
     // Construct where clause
@@ -77,11 +81,27 @@ export class ProductsService {
       filters.push({ productStatus });
     }
 
+    if (isLowStock) {
+      filters.push({
+        availableQuantity: {
+          lt: 10,
+          gt: 0, // Optional: Exclude 0 qty if it's considered out-of-stock instead
+        },
+      });
+    }
+
+    if (isOutOfStock) {
+      filters.push({ availableQuantity: 0 });
+    }
+
     return this.prismaService.product.findMany({
       where: filters.length > 0 ? { AND: filters } : undefined,
       skip: pageOffset,
       take: pageSize,
-      orderBy: { displayPriority: 'desc' },
+      orderBy: { displayPriority: 'asc' },
+      include: {
+        category: true,
+      },
     });
   }
 

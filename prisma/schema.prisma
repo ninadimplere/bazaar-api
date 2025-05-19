@@ -137,6 +137,15 @@ model Category {
   Product   Product[]
 }
 
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Product {
   id                 Int            @id @default(autoincrement())
   title              String
@@ -150,6 +159,8 @@ model Product {
   category           Category?      @relation(fields: [categoryId], references: [id])
   imageUrl           String?
   productStatus      ProductStatus  @default(DRAFT)
+  brandId            Int?
+  brandName          Brand?         @relation(fields: [brandId], references: [id])
   sellerId           Int
   slug               String         @unique
   createdAt          DateTime       @default(now())
@@ -157,7 +168,7 @@ model Product {
   reviews            Review[]
   cartProducts       CartProduct[] // Relation to CartProduct
   orderProducts      OrderProduct[] // Relation to OrderProduct
-  coupons            Coupon[]       @relation("ProductCoupons") // Relation to multiple coupons
+  coupons            Coupon[]       @relation("ProductCoupons")
 }
 
 model Review {

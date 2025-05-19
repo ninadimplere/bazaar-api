@@ -24,6 +24,8 @@ export class ProductsController {
     @Query('productStatus') productStatus?: ProductStatus,
     @Query('pageSize') pageSize?: string,
     @Query('pageOffset') pageOffset?: string,
+    @Query('isLowStock') isLowStock?: string,
+    @Query('isOutOfStock') isOutOfStock?: string,
   ) {
     return this.productsService.getFilteredProducts({
       searchString,
@@ -32,6 +34,8 @@ export class ProductsController {
       productStatus,
       pageSize: pageSize ? parseInt(pageSize, 10) : 10,
       pageOffset: pageOffset ? parseInt(pageOffset, 10) : 0,
+      isLowStock,
+      isOutOfStock,
     });
   }
 
