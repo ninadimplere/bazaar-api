@@ -1,24 +1,34 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { User } from '../users/users.entity';
 
 @ObjectType()
 export class Order {
   @Field(() => Int)
   id: number;
 
-  @Field()
-  userId: string;
+  @Field(() => User)
+  user: User; // Embedded user details
+
+  @Field(() => [OrderProduct])
+  products: OrderProduct[]; // Embedded product details
 
   @Field()
-  status: string;
+  sellerId: number;
+
+  @Field(() => Float)
+  totalPrice: number; // Total price of the order
+
+  @Field()
+  orderStatus: string;
+
+  @Field()
+  paymentStatus: string;
 
   @Field()
   createdAt: Date;
 
   @Field()
   updatedAt: Date;
-
-  @Field(() => [OrderProduct], { nullable: true })
-  products?: OrderProduct[];
 }
 
 @ObjectType()
@@ -26,11 +36,11 @@ export class OrderProduct {
   @Field(() => Int)
   id: number;
 
-  @Field(() => Int)
-  orderId: number;
+  @Field()
+  name: string;
 
-  @Field(() => Int)
-  productId: number;
+  @Field(() => Float)
+  price: number;
 
   @Field(() => Int)
   quantity: number;

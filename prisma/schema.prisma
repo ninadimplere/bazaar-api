@@ -50,6 +50,12 @@ enum ProductStatus {
   DRAFT
 }
 
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String?  @unique
@@ -122,6 +128,8 @@ model Seller {
   createdAt          DateTime            @default(now())
   approvedBy         String?
   updatedAt          DateTime            @updatedAt
+
+  orders Order[] // Relation to Order
 }
 
 model Category {
@@ -167,8 +175,8 @@ model Product {
   updatedAt          DateTime       @updatedAt
   reviews            Review[]
   cartProducts       CartProduct[] // Relation to CartProduct
-  orderProducts      OrderProduct[] // Relation to OrderProduct
   coupons            Coupon[]       @relation("ProductCoupons")
+  orderProducts      OrderProduct[] // Relation to OrderProduct
 }
 
 model Review {
@@ -203,24 +211,31 @@ model CartProduct {
 }
 
 model Order {
-  id        Int            @id @default(autoincrement())
-  userId    String
-  user      User           @relation(fields: [userId], references: [id])
-  products  OrderProduct[]
-  couponId  Int? // Foreign key to Coupon
-  coupon    Coupon?        @relation(fields: [couponId], references: [id])
-  status    OrderStatus    @default(PENDING)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id                 Int            @id @default(autoincrement())
+  userId             String
+  user               User           @relation(fields: [userId], references: [id])
+  products           OrderProduct[] // Relation to OrderProduct
+  totalPrice         Float          @default(0) // Total price of the order
+  orderStatus        OrderStatus    @default(PENDING)
+  paymentStatus      PaymentStatus  @default(PENDING)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  coupons            Coupon[]       // Relation to Coupon
+  returnRequests     ReturnRequest[] // Relation to ReturnRequest
+  sellerId           Int
+  seller             Seller          @relation(fields: [sellerId], references: [id])
+
+  @@index([id])
 }
 
 model OrderProduct {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
   productId Int
-  quantity  Int     @default(1)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  price     Float    @default(0) // Price of the product in the order
 }
 
 model Coupon {
@@ -241,4 +256,14 @@ model Coupon {
   carts  Cart[] // Relation to Cart
   orders Order[] // Relation to Order
   user   User    @relation(fields: [createdBy], references: [id])
+}
+
+model ReturnRequest {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  order     Order       @relation(fields: [orderId], references: [id])
+  reason    String
+  status    String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }

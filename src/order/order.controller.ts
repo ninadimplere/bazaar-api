@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { OrderService } from './order.service';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrderController {
@@ -10,13 +11,44 @@ export class OrderController {
     return this.orderService.fetchAllOrders();
   }
 
+  @Get('counts')
+  getOrderCounts() {
+    return this.orderService.getOrderCounts();
+  }
+
   @Get(':id')
   async getOrderById(@Param('id') id: number) {
     return this.orderService.getOrderById(id);
   }
 
   @Post()
-  async createOrder(@Body() body: { userId: string; products: { productId: number; quantity: number }[] }) {
-    return this.orderService.createOrder(body.userId, body.products);
+  async createOrder(@Body() body: { user: any; seller: { id: number }; products: any[]; totalPrice: number }) {
+    return this.orderService.createOrder(body.user, body.seller, body.products, body.totalPrice);
+  }
+
+  @Post(':id/status')
+  async updateOrderStatus(
+    @Param('id') id: number,
+    @Body() body: { status: OrderStatus }
+  ) {
+    return this.orderService.updateOrderStatus(id, body.status);
+  }
+
+  @Get('filtered')
+  async getOrdersWithFilters(
+    @Query('status') status?: string,
+    @Query('paymentStatus') paymentStatus: PaymentStatus = 'PENDING',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('skip') skip = 0,
+    @Query('take') take = 10,
+  ) {
+    const filters = {
+      status,
+      paymentStatus,
+      dateRange: startDate && endDate ? { start: new Date(startDate), end: new Date(endDate) } : undefined,
+    };
+
+    return this.orderService.fetchOrdersWithFilters(filters, { skip: Number(skip), take: Number(take) });
   }
 }
