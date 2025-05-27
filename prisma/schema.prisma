@@ -50,6 +50,12 @@ enum ProductStatus {
   DRAFT
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String?  @unique
@@ -67,6 +73,7 @@ model User {
   addresses    Address[] // Relation to Address
   seller       Seller? // Relation to Seller
   orders       Order[] // Relation to Order
+  UserProfile  UserProfile?
 }
 
 model BankAccount {
@@ -122,6 +129,8 @@ model Seller {
   createdAt          DateTime            @default(now())
   approvedBy         String?
   updatedAt          DateTime            @updatedAt
+  SellerOrder        SellerOrder[]
+  Product            Product[]
 }
 
 model Category {
@@ -159,9 +168,14 @@ model Product {
   category           Category?      @relation(fields: [categoryId], references: [id])
   imageUrl           String?
   productStatus      ProductStatus  @default(DRAFT)
+<<<<<<< Updated upstream
   brandId            Int?
   brandName          Brand?         @relation(fields: [brandId], references: [id])
   sellerId           Int
+=======
+  sellerId           String
+  seller             Seller         @relation(fields: [sellerId], references: [userId])
+>>>>>>> Stashed changes
   slug               String         @unique
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -203,24 +217,27 @@ model CartProduct {
 }
 
 model Order {
-  id        Int            @id @default(autoincrement())
-  userId    String
-  user      User           @relation(fields: [userId], references: [id])
-  products  OrderProduct[]
-  couponId  Int? // Foreign key to Coupon
-  coupon    Coupon?        @relation(fields: [couponId], references: [id])
-  status    OrderStatus    @default(PENDING)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          Int            @id @default(autoincrement())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  products    OrderProduct[]
+  couponId    Int? // Foreign key to Coupon
+  coupon      Coupon?        @relation(fields: [couponId], references: [id])
+  status      OrderStatus    @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  SellerOrder SellerOrder[]
 }
 
 model OrderProduct {
-  id        Int     @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int     @default(1)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  id            Int          @id @default(autoincrement())
+  orderId       Int
+  productId     Int
+  quantity      Int          @default(1)
+  order         Order        @relation(fields: [orderId], references: [id])
+  product       Product      @relation(fields: [productId], references: [id])
+  SellerOrder   SellerOrder? @relation(fields: [sellerOrderId], references: [id])
+  sellerOrderId Int?
 }
 
 model Coupon {
@@ -241,4 +258,30 @@ model Coupon {
   carts  Cart[] // Relation to Cart
   orders Order[] // Relation to Order
   user   User    @relation(fields: [createdBy], references: [id])
+}
+
+model SellerOrder {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  sellerId  String
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  order    Order          @relation(fields: [orderId], references: [id])
+  seller   Seller         @relation(fields: [sellerId], references: [userId])
+  products OrderProduct[]
+}
+
+model UserProfile {
+  id           Int       @id @default(autoincrement())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id])
+  fullName     String?
+  phoneNumber  String?
+  dateOfBirth  DateTime?
+  gender       Gender?
+  profileImage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }

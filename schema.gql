@@ -1,0 +1,133 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Category {
+  id: Int!
+  name: String!
+  slug: String!
+  isActive: Boolean!
+  parentId: Int
+  children: [Category!]
+}
+
+type Product {
+  id: Int!
+  title: String!
+  description: String!
+  markedPrice: Float!
+  displayPrice: Float!
+  discountPercentage: Float!
+  category: String
+  imageUrl: String
+  sellerId: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Coupon {
+  id: Int!
+  code: String!
+  discountValue: Float!
+  discountType: String!
+  expirationDate: DateTime
+  minPurchaseAmount: Float
+  maxUsage: Int
+  perCustomerLimit: Int
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Cart {
+  id: Int!
+  userId: String!
+  products: [CartProduct!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CartProduct {
+  id: Int!
+  cartId: Int!
+  productId: Int!
+  quantity: Int!
+}
+
+type Address {
+  addressLine1: String
+  city: String
+  state: String
+  postalCode: String
+  country: String
+}
+
+type CustomerSummary {
+  customerId: String!
+  email: String!
+  number: String!
+  name: String!
+  orderCount: Int!
+  totalSpend: Float
+  lastOrderDate: String
+  address: Address
+  tag: CustomerTag!
+  memberSince: String!
+}
+
+"""Customer classification based on order behavior"""
+enum CustomerTag {
+  HIGH_SPENDER
+  FREQUENT
+  NEW
+  ONE_TIME
+}
+
+type Query {
+  categories: [Category!]!
+  category(id: Int!): Category!
+  products(filter: FilterProductsInput): [Product!]!
+  product(id: Int!): Product!
+  coupons: [Coupon!]!
+  coupon(id: String!): Coupon!
+  cart(userId: String!): Cart!
+  customersBySeller(sellerId: String!, search: String, limit: Int, offset: Int, sortBy: String, sortOrder: String, tag: CustomerTag): [CustomerSummary!]!
+}
+
+input FilterProductsInput {
+  searchString: String
+  priceMin: Float
+  priceMax: Float
+  productStatus: ProductStatus
+  pageSize: Int = 10
+  pageOffset: Int = 0
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUTOFSTOCK
+  DRAFT
+}
+
+type Mutation {
+  createCoupon(code: String!, discountValue: Float!, discountType: String!, validFrom: DateTime!, validTo: DateTime!, userId: String!): Coupon!
+  updateCoupon(id: String!, updateData: UpdateCouponInput!): Coupon!
+  deleteCoupon(id: String!): Boolean!
+  addToCart(userId: String!, productId: Int!, quantity: Int!): Cart!
+}
+
+input UpdateCouponInput {
+  code: String
+  discountValue: Float
+  discountType: String
+  validFrom: DateTime
+  validTo: DateTime
+  minPurchaseAmount: Float
+  maxUsage: Int
+  perCustomerLimit: Int
+}
