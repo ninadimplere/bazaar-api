@@ -168,14 +168,10 @@ model Product {
   category           Category?      @relation(fields: [categoryId], references: [id])
   imageUrl           String?
   productStatus      ProductStatus  @default(DRAFT)
-<<<<<<< Updated upstream
   brandId            Int?
   brandName          Brand?         @relation(fields: [brandId], references: [id])
-  sellerId           Int
-=======
   sellerId           String
   seller             Seller         @relation(fields: [sellerId], references: [userId])
->>>>>>> Stashed changes
   slug               String         @unique
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
