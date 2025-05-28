@@ -1,6 +1,56 @@
-import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Int, Float, Mutation } from '@nestjs/graphql';
 import { OrderService } from './order.service';
 import { Order } from './order.entity';
+
+import { InputType, Field, ObjectType } from '@nestjs/graphql';
+
+@InputType()
+class UserInput {
+  @Field()
+  id: string;
+
+  @Field()
+  email: string;
+}
+
+@InputType()
+class OrderProductInput {
+  @Field(() => Int)
+  productId: number;
+
+  @Field(() => Int)
+  quantity: number;
+
+  @Field(() => Float)
+  price: number;
+}
+
+@ObjectType()
+class OrderProduct {
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => Int)
+  orderId: number;
+
+  @Field(() => Int)
+  productId: number;
+
+  @Field(() => Int)
+  quantity: number;
+
+  @Field(() => Float)
+  price: number;
+
+  @Field(() => Int, { nullable: true })
+  sellerOrderId?: number;
+}
+
+@InputType()
+class SellerInput {
+  @Field()
+  id: string;
+}
 
 @Resolver(() => Order)
 export class OrderResolver {
@@ -15,23 +65,13 @@ export class OrderResolver {
   async order(@Args('id', { type: () => Int }) id: number) {
     return this.orderService.getOrderById(id);
   }
-
   @Mutation(() => Order)
   async createOrder(
-    @Args('userId') userId: string,
-    @Args('products', { type: () => [OrderProductInput] }) products: { productId: number; quantity: number }[],
+    @Args('user', { type: () => UserInput }) user: UserInput,
+    @Args('seller', { type: () => SellerInput }) seller: SellerInput,
+    @Args('products', { type: () => [OrderProductInput] }) products: { productId: number; quantity: number; price: number }[],
+    @Args('totalPrice', { type: () => Float }) totalPrice: number,
   ) {
-    return this.orderService.createOrder(userId, products);
+    return this.orderService.createOrder(user, seller, products, totalPrice);
   }
-}
-
-import { InputType, Field } from '@nestjs/graphql';
-
-@InputType()
-class OrderProductInput {
-  @Field(() => Int)
-  productId: number;
-
-  @Field(() => Int)
-  quantity: number;
 }

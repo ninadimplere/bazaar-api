@@ -71,4 +71,14 @@ export class ProductsController {
   async uploadProduct(@Body() createProductDto: CreateProductDto) {
     return this.productsService.createProduct(createProductDto);
   }
+
+  @Post('category')
+  async createCategory(@Body() body: { name: string; slug?: string; parentId?: number }) {
+    return this.productsService.createCategory(body);
+  }
+
+  @Post('brand')
+  async createBrand(@Body() body: { name: string; slug: string }) {
+    return this.productsService.createBrand(body);
+  }
 }

@@ -10,4 +10,9 @@ export class RegisterController {
   async register(@Body() dto: RegisterDto) {
     return this.registerService.registerUser(dto);
   }
+
+  @Post('seller')
+  async registerSeller(@Body() dto: RegisterDto) {
+    return this.registerService.registerSeller(dto);
+  }
 }

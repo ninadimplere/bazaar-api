@@ -12,17 +12,10 @@ export class ProductsService {
       where: { id: Number(productId) }, // Ensure id is parsed as a number
     });
   }
-
   async createProduct(createProductDto: CreateProductDto) {
-    const categoryExists = await this.prismaService.category.findUnique({
-      where: { id: createProductDto.categoryId },
-    });
-    if (!categoryExists) {
-      throw new Error('Category not found');
-    }
-
+    // First find the seller by userId
     const sellerExists = await this.prismaService.seller.findUnique({
-      where: { id: createProductDto.sellerId },
+      where: { userId: createProductDto.sellerId },
     });
 
     if (!sellerExists) {
@@ -169,5 +162,30 @@ export class ProductsService {
       outOfStockProducts,
       lowStockProducts,
     };
+  }
+
+  async createCategory(body: { name: string; slug?: string; parentId?: number }) {
+    const slug = body.slug || body.name.toLowerCase().replace(/\s+/g, '-');
+    return this.prismaService.category.create({
+      data: {
+        name: body.name,
+        slug,
+        isActive: true,
+        parentId: body.parentId
+      },
+      include: {
+        parent: true,
+        children: true
+      }
+    });
+  }
+
+  async createBrand(body: { name: string; slug: string }) {
+    return this.prismaService.brand.create({
+      data: {
+        name: body.name,
+        slug: body.slug,
+      },
+    });
   }
 }

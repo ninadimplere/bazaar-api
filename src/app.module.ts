@@ -14,6 +14,7 @@ import { CouponsModule } from 'coupons/coupons.module';
 import { CartModule } from 'cart/cart.module';
 import { AddressModule } from './address/address.module';
 import { BankAccountModule } from 'bank-account/bank-account.module';
+import { OrderModule } from 'order/order.module';
 import { CustomersModule } from 'customers/list/customer-list.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { CustomersModule } from 'customers/list/customer-list.module';
     CartModule,
     AddressModule,
     BankAccountModule,
+    OrderModule,
     CustomersModule,
   ],
   controllers: [AppController],

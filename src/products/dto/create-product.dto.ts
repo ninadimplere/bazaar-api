@@ -31,7 +31,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsInt()
   displayPriority?: number;
-
   @IsInt()
   categoryId: number;
 
@@ -48,8 +47,8 @@ export class CreateProductDto {
   @IsEnum(ProductStatus)
   productStatus?: ProductStatus;
 
-  @IsInt()
-  sellerId: number;
+  @IsString()
+  sellerId: string;
 
   @IsString()
   slug: string;
