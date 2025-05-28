@@ -56,6 +56,12 @@ enum PaymentStatus {
   FAILED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String?  @unique
@@ -73,6 +79,7 @@ model User {
   addresses    Address[] // Relation to Address
   seller       Seller? // Relation to Seller
   orders       Order[] // Relation to Order
+  UserProfile  UserProfile?
 }
 
 model BankAccount {
@@ -128,8 +135,8 @@ model Seller {
   createdAt          DateTime            @default(now())
   approvedBy         String?
   updatedAt          DateTime            @updatedAt
-
-  orders Order[] // Relation to Order
+  SellerOrder        SellerOrder[]
+  Product            Product[]
 }
 
 model Category {
@@ -169,7 +176,8 @@ model Product {
   productStatus      ProductStatus  @default(DRAFT)
   brandId            Int?
   brandName          Brand?         @relation(fields: [brandId], references: [id])
-  sellerId           Int
+  sellerId           String
+  seller             Seller         @relation(fields: [sellerId], references: [userId])
   slug               String         @unique
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -216,14 +224,16 @@ model Order {
   user               User           @relation(fields: [userId], references: [id])
   products           OrderProduct[] // Relation to OrderProduct
   totalPrice         Float          @default(0) // Total price of the order
+  shippingCharges    Float          @default(0)
   orderStatus        OrderStatus    @default(PENDING)
   paymentStatus      PaymentStatus  @default(PENDING)
   createdAt          DateTime       @default(now())
+  paymentTime        DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   coupons            Coupon[]       // Relation to Coupon
   returnRequests     ReturnRequest[] // Relation to ReturnRequest
-  sellerId           Int
-  seller             Seller          @relation(fields: [sellerId], references: [id])
+  cancelRequests     CancelRequest[] // Relation to CancelRequest
+  SellerOrder        SellerOrder[]
 
   @@index([id])
 }
@@ -236,7 +246,10 @@ model OrderProduct {
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Int      @default(1)
   price     Float    @default(0) // Price of the product in the order
+  SellerOrder   SellerOrder? @relation(fields: [sellerOrderId], references: [id])
+  sellerOrderId Int?
 }
+
 
 model Coupon {
   id                 Int       @id @default(autoincrement())
@@ -266,4 +279,43 @@ model ReturnRequest {
   status    String      @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  returnRequestReason String
+}
+
+model CancelRequest {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  order     Order       @relation(fields: [orderId], references: [id])
+  reason    String
+  status    String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  cancelRequestReason String
+}
+
+model SellerOrder {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  sellerId  String
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  order    Order          @relation(fields: [orderId], references: [id])
+  seller   Seller         @relation(fields: [sellerId], references: [userId])
+  products OrderProduct[]
+  sellerNote String
+}
+
+model UserProfile {
+  id           Int       @id @default(autoincrement())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id])
+  fullName     String?
+  phoneNumber  String?
+  dateOfBirth  DateTime?
+  gender       Gender?
+  profileImage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }

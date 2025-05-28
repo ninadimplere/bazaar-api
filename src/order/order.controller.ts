@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
 @Controller('orders')
 export class OrderController {
@@ -20,9 +20,17 @@ export class OrderController {
 async getOrderById(@Param('id') id: string) {
   return this.orderService.getOrderById(Number(id)); // Convert id to a number
 }
-
   @Post()
-  async createOrder(@Body() body: { user: any; seller: { id: number }; products: any[]; totalPrice: number }) {
+  async createOrder(@Body() body: { 
+    user: { id: string; email: string }; 
+    seller: { id: string }; 
+    products: Array<{ 
+      productId: number; 
+      quantity: number; 
+      price: number; 
+    }>; 
+    totalPrice: number;
+  }) {
     return this.orderService.createOrder(body.user, body.seller, body.products, body.totalPrice);
   }
 

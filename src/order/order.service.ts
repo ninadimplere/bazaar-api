@@ -4,60 +4,91 @@ import { PrismaService } from '@prisma/prisma.service';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prismaService: PrismaService) {}
-
-  async fetchAllOrders(): Promise<any> {
+  constructor(private readonly prismaService: PrismaService) {}  async fetchAllOrders(): Promise<any> {
     return this.prismaService.order.findMany({
       include: {
-        user: true, // Include user details
-        seller: true, // Include seller details
+        user: {
+          include: {
+            UserProfile: true
+          }
+        },
         products: {
           include: {
-            product: true, // Include product details
+            product: true,
+            SellerOrder: true,
           },
         },
-        coupons: true, // Include coupon details if needed
-        returnRequests: true, // Include return request details if needed
+        SellerOrder: {
+          include: {
+            seller: true,
+          },
+        },
+        coupons: true,
+        returnRequests: true,
+        cancelRequests: true,
       },
     });
-  }
-
-  async getOrderById(id: number) {
+  }  async getOrderById(id: number) {
     return this.prismaService.order.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        user: true,
-        seller: true, // Include seller details
-        products: true,
-        totalPrice: true,
-        orderStatus: true,
-        paymentStatus: true,
-        createdAt: true,
-        updatedAt: true,
+      where: { id },      include: {
+        user: {
+          include: {
+            UserProfile: true
+          }
+        },
+        products: {
+          include: {
+            product: true,
+            SellerOrder: true,
+          },
+        },
+        SellerOrder: {
+          include: {
+            seller: true,
+          },
+        },
+        coupons: true,
+        returnRequests: true,
+        cancelRequests: true,
       },
     });
   }
-
-  async createOrder(user: { id: string; email: string }, seller: { id: number }, products: any[], totalPrice: number) {
-    return this.prismaService.order.create({
+  async createOrder(user: { id: string; email: string }, seller: { id: string }, products: any[], totalPrice: number) {
+    // Create the main order
+    const order = await this.prismaService.order.create({
       data: {
         user: {
-          connect: { id: user.id }, // Use Prisma's nested writes to associate the User object
-        },
-        seller: {
-          connect: { id: seller.id },
+          connect: { id: user.id },
         },
         products: {
           create: products.map((product) => ({
-            productId: product.productId,
+            product: { connect: { id: product.productId } },
             quantity: product.quantity,
+            price: product.price,
           })),
         },
         totalPrice,
         orderStatus: 'PENDING',
         paymentStatus: 'PENDING',
+        shippingCharges: 0, // Add default shipping charges
+        // Create corresponding seller order
+        SellerOrder: {
+          create: {
+            sellerId: seller.id,
+            status: 'PENDING',
+            sellerNote: '',
+          }
+        }
       },
+      include: {
+        user: true,
+        products: {
+          include: {
+            product: true
+          }
+        },
+        SellerOrder: true
+      }
     });
   }
 

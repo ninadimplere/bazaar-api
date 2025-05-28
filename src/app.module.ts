@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '@auth/auth.module';
 import { UsersModule } from '@users/users.module';
 import { GraphQLModule } from '@nestjs/graphql';
-
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RegisterModule } from '@register/register.module';
@@ -16,6 +15,7 @@ import { CartModule } from 'cart/cart.module';
 import { AddressModule } from './address/address.module';
 import { BankAccountModule } from 'bank-account/bank-account.module';
 import { OrderModule } from 'order/order.module';
+import { CustomersModule } from 'customers/list/customer-list.module';
 
 @Module({
   imports: [
@@ -23,8 +23,11 @@ import { OrderModule } from 'order/order.module';
       isGlobal: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
-      autoSchemaFile: true, // Code-first approach
+      autoSchemaFile: 'schema.gql',
       driver: ApolloDriver,
+      path: '/graphql',
+      playground: true,
+      introspection: true,
     }),
     AuthModule,
     UsersModule,
@@ -36,7 +39,8 @@ import { OrderModule } from 'order/order.module';
     CartModule,
     AddressModule,
     BankAccountModule,
-    OrderModule
+    OrderModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

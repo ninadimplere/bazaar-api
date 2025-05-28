@@ -73,7 +73,12 @@ export class ProductsController {
   }
 
   @Post('category')
-  async createCategory(@Body() body: { name: string; slug?: string }) {
+  async createCategory(@Body() body: { name: string; slug?: string; parentId?: number }) {
     return this.productsService.createCategory(body);
+  }
+
+  @Post('brand')
+  async createBrand(@Body() body: { name: string; slug: string }) {
+    return this.productsService.createBrand(body);
   }
 }
