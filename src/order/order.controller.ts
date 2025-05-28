@@ -17,9 +17,9 @@ export class OrderController {
   }
 
   @Get(':id')
-  async getOrderById(@Param('id') id: number) {
-    return this.orderService.getOrderById(id);
-  }
+async getOrderById(@Param('id') id: string) {
+  return this.orderService.getOrderById(Number(id)); // Convert id to a number
+}
 
   @Post()
   async createOrder(@Body() body: { user: any; seller: { id: number }; products: any[]; totalPrice: number }) {
@@ -28,10 +28,10 @@ export class OrderController {
 
   @Post(':id/status')
   async updateOrderStatus(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() body: { status: OrderStatus }
   ) {
-    return this.orderService.updateOrderStatus(id, body.status);
+    return this.orderService.updateOrderStatus(Number(id), body.status);
   }
 
   @Get('filtered')
