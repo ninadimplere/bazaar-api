@@ -32,14 +32,19 @@ async getOrderById(@Param('id') id: string) {
     totalPrice: number;
   }) {
     return this.orderService.createOrder(body.user, body.seller, body.products, body.totalPrice);
-  }
-
-  @Post(':id/status')
+  } 
+  
+  @Post('status')
   async updateOrderStatus(
-    @Param('id') id: string,
-    @Body() body: { status: OrderStatus }
+    @Body() body: { ids: number[]; status: OrderStatus }
   ) {
-    return this.orderService.updateOrderStatus(Number(id), body.status);
+    // Use the bulk update method for better performance
+    const results = await this.orderService.updateMultipleOrderStatuses(body.ids, body.status);
+    return { 
+      success: true, 
+      updatedCount: results.length,
+      ids: body.ids 
+    };
   }
 
   @Get('filtered')

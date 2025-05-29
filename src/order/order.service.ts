@@ -9,7 +9,8 @@ export class OrderService {
       include: {
         user: {
           include: {
-            UserProfile: true
+            UserProfile: true,
+            addresses: true
           }
         },
         products: {
@@ -33,7 +34,8 @@ export class OrderService {
       where: { id },      include: {
         user: {
           include: {
-            UserProfile: true
+            UserProfile: true,
+            addresses: true
           }
         },
         products: {
@@ -97,6 +99,19 @@ export class OrderService {
       where: { id: orderId },
       data: { orderStatus: status },
     });
+  }
+
+  // Add new method for bulk order status updates
+  async updateMultipleOrderStatuses(orderIds: number[], status: OrderStatus) {
+    // Use Prisma transaction to ensure all updates succeed or none do
+    return this.prismaService.$transaction(
+      orderIds.map(id => 
+        this.prismaService.order.update({
+          where: { id },
+          data: { orderStatus: status },
+        })
+      )
+    );
   }
 
   async fetchOrdersWithFilters(filters: any, pagination: { skip: number; take: number }) {
