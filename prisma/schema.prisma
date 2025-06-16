@@ -140,25 +140,46 @@ model Seller {
 }
 
 model Category {
-  id        Int        @id @default(autoincrement())
-  name      String
-  parentId  Int?
-  parent    Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
-  children  Category[] @relation("CategoryToSubcategory")
-  slug      String     @unique
-  isActive  Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  Product   Product[]
+  id            Int             @id @default(autoincrement())
+  name          String
+  parentId      Int?
+  parent        Category?       @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  children      Category[]      @relation("CategoryToSubcategory")
+  slug          String          @unique
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  Product       Product[]
+  BrandCategory BrandCategory[]
 }
 
 model Brand {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  slug      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              Int             @id @default(autoincrement())
+  name            String
+  slug            String          @unique
+  logoUrl         String?
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  brandCategories BrandCategory[]
+  products        Product[]
+}
+
+model BrandCategory {
+  brandId      Int
+  categoryId   Int
+  featured     Boolean  @default(false)
+  displayOrder Int?
+  tag          String?
+  addedBy      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  brand    Brand    @relation(fields: [brandId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@id([brandId, categoryId])
 }
 
 model Product {
@@ -219,37 +240,36 @@ model CartProduct {
 }
 
 model Order {
-  id                 Int            @id @default(autoincrement())
-  userId             String
-  user               User           @relation(fields: [userId], references: [id])
-  products           OrderProduct[] // Relation to OrderProduct
-  totalPrice         Float          @default(0) // Total price of the order
-  shippingCharges    Float          @default(0)
-  orderStatus        OrderStatus    @default(PENDING)
-  paymentStatus      PaymentStatus  @default(PENDING)
-  createdAt          DateTime       @default(now())
-  paymentTime        DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  coupons            Coupon[]       // Relation to Coupon
-  returnRequests     ReturnRequest[] // Relation to ReturnRequest
-  cancelRequests     CancelRequest[] // Relation to CancelRequest
-  SellerOrder        SellerOrder[]
+  id              Int             @id @default(autoincrement())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  products        OrderProduct[] // Relation to OrderProduct
+  totalPrice      Float           @default(0) // Total price of the order
+  shippingCharges Float           @default(0)
+  orderStatus     OrderStatus     @default(PENDING)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  createdAt       DateTime        @default(now())
+  paymentTime     DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  coupons         Coupon[] // Relation to Coupon
+  returnRequests  ReturnRequest[] // Relation to ReturnRequest
+  cancelRequests  CancelRequest[] // Relation to CancelRequest
+  SellerOrder     SellerOrder[]
 
   @@index([id])
 }
 
 model OrderProduct {
-  id        Int      @id @default(autoincrement())
-  orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int      @default(1)
-  price     Float    @default(0) // Price of the product in the order
+  id            Int          @id @default(autoincrement())
+  orderId       Int
+  order         Order        @relation(fields: [orderId], references: [id])
+  productId     Int
+  product       Product      @relation(fields: [productId], references: [id])
+  quantity      Int          @default(1)
+  price         Float        @default(0) // Price of the product in the order
   SellerOrder   SellerOrder? @relation(fields: [sellerOrderId], references: [id])
   sellerOrderId Int?
 }
-
 
 model Coupon {
   id                 Int       @id @default(autoincrement())
@@ -272,24 +292,24 @@ model Coupon {
 }
 
 model ReturnRequest {
-  id        Int         @id @default(autoincrement())
-  orderId   Int
-  order     Order       @relation(fields: [orderId], references: [id])
-  reason    String
-  status    String      @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id                  Int      @id @default(autoincrement())
+  orderId             Int
+  order               Order    @relation(fields: [orderId], references: [id])
+  reason              String
+  status              String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
   returnRequestReason String
 }
 
 model CancelRequest {
-  id        Int         @id @default(autoincrement())
-  orderId   Int
-  order     Order       @relation(fields: [orderId], references: [id])
-  reason    String
-  status    String      @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id                  Int      @id @default(autoincrement())
+  orderId             Int
+  order               Order    @relation(fields: [orderId], references: [id])
+  reason              String
+  status              String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
   cancelRequestReason String
 }
 
@@ -301,9 +321,9 @@ model SellerOrder {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  order    Order          @relation(fields: [orderId], references: [id])
-  seller   Seller         @relation(fields: [sellerId], references: [userId])
-  products OrderProduct[]
+  order      Order          @relation(fields: [orderId], references: [id])
+  seller     Seller         @relation(fields: [sellerId], references: [userId])
+  products   OrderProduct[]
   sellerNote String
 }
 

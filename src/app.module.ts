@@ -16,6 +16,8 @@ import { AddressModule } from './address/address.module';
 import { BankAccountModule } from 'bank-account/bank-account.module';
 import { OrderModule } from 'order/order.module';
 import { CustomersModule } from 'customers/list/customer-list.module';
+import { BrandModule } from 'brand/brand.module';
+import { BrandCategoryModule } from 'brand/brand-category/brand-category.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { CustomersModule } from 'customers/list/customer-list.module';
     BankAccountModule,
     OrderModule,
     CustomersModule,
+    BrandModule,
+    BrandCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
