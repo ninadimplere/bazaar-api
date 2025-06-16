@@ -16,7 +16,7 @@ export class Category {
   isActive: boolean;
 
   @Field(() => Int, { nullable: true })
-  parentId?: number;
+  parentId: number | null;
 
   @Field(() => [Category], { nullable: true })
   children?: Category[];
