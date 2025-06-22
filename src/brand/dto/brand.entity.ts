@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Product } from '@products/products.entity';
 import { Category } from 'category/dto/category.entity';
+import { Product } from 'product/dto/product.model';
 
 @ObjectType()
 export class Brand {

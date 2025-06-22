@@ -7,7 +7,6 @@ import {
   CategoryResponse,
   CategoryListResponse,
 } from './dto/category.response';
-import { of } from 'rxjs';
 
 @Resolver(() => Category)
 export class CategoryResolver {

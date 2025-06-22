@@ -9,7 +9,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RegisterModule } from '@register/register.module';
 import { CategoryModule } from 'category/category.module';
-import { ProductsModule } from './products/products.module';
+// import { ProductsModule } from './products/products.module';
 import { CouponsModule } from 'coupons/coupons.module';
 import { CartModule } from 'cart/cart.module';
 import { AddressModule } from './address/address.module';
@@ -18,6 +18,7 @@ import { OrderModule } from 'order/order.module';
 import { CustomersModule } from 'customers/list/customer-list.module';
 import { BrandModule } from 'brand/brand.module';
 import { BrandCategoryModule } from 'brand/brand-category/brand-category.module';
+import { ProductModule } from 'product/product.module';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { BrandCategoryModule } from 'brand/brand-category/brand-category.module'
     PrismaModule,
     RegisterModule,
     CategoryModule,
-    ProductsModule,
+    // ProductsModule,
     CouponsModule,
     CartModule,
     AddressModule,
@@ -45,6 +46,7 @@ import { BrandCategoryModule } from 'brand/brand-category/brand-category.module'
     CustomersModule,
     BrandModule,
     BrandCategoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
