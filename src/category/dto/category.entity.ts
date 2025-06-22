@@ -20,4 +20,7 @@ export class Category {
 
   @Field(() => [Category], { nullable: true })
   children?: Category[];
+
+  @Field(() => Category, { nullable: true })
+  parent?: Category | null;
 }

@@ -9,6 +9,7 @@ type Category {
   isActive: Boolean!
   parentId: Int
   children: [Category!]
+  parent: Category
 }
 
 type CategoryResponse {

@@ -17,9 +17,10 @@ export class CategoryService {
       skip: offset,
       take: limit,
       where: { isActive: showActive },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'asc' },
       include: {
         children: true,
+        parent: true,
       },
     });
   }
@@ -52,17 +53,6 @@ export class CategoryService {
       include: { children: true },
     });
   }
-
-  // async deleteCategory(id: number) {
-  //   const existing = await this.prismaService.category.findUnique({
-  //     where: { id },
-  //   });
-  //   if (!existing) throw new NotFoundException('Category not found');
-
-  //   return this.prismaService.category.delete({
-  //     where: { id },
-  //   });
-  // }
 
   async getCategoriesByParentId(parentId: number) {
     return this.prismaService.category.findMany({
