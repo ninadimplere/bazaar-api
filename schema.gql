@@ -179,7 +179,7 @@ type BrandCategory {
 }
 
 type Query {
-  categories: CategoryListResponse!
+  categories(offset: Int, limit: Int, showActive: Boolean): CategoryListResponse!
   category(id: Int!): CategoryResponse!
   categoryBySlug(slug: String!): CategoryResponse!
   subcategories(parentId: Int!): CategoryListResponse!

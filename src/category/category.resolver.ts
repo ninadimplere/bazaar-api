@@ -7,14 +7,24 @@ import {
   CategoryResponse,
   CategoryListResponse,
 } from './dto/category.response';
+import { of } from 'rxjs';
 
 @Resolver(() => Category)
 export class CategoryResolver {
   constructor(private categoryService: CategoryService) {}
 
   @Query(() => CategoryListResponse)
-  async categories(): Promise<CategoryListResponse> {
-    const result = await this.categoryService.fetchAllCategories();
+  async categories(
+    @Args('offset', { type: () => Int, nullable: true }) offset = 0,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+    @Args('showActive', { type: () => Boolean, nullable: true })
+    showActive?: boolean,
+  ): Promise<CategoryListResponse> {
+    const result = await this.categoryService.fetchAllCategories({
+      offset,
+      limit,
+      showActive,
+    });
     return {
       success: true,
       data: result,

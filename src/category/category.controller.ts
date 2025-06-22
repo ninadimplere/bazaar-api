@@ -15,6 +15,6 @@ export class CategoryController {
 
   @Get('user')
   async login() {
-    return this.categoryService.fetchAllCategories();
+    return 'Ninad';
   }
 }

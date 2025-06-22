@@ -20,4 +20,10 @@ export class Category {
 
   @Field(() => [Category], { nullable: true })
   children?: Category[];
+
+  // @Field(() => Date)
+  // createdAt: Date;
+
+  // @Field(() => Date)
+  // updatedAt: Date;
 }
