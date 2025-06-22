@@ -24,25 +24,6 @@ type CategoryListResponse {
   data: [Category!]
 }
 
-type Product {
-  id: Int!
-  title: String!
-  description: String!
-  markedPrice: Float!
-  displayPrice: Float!
-  discountPercentage: Float!
-  category: String
-  imageUrl: String
-  sellerId: Float!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type Coupon {
   id: Int!
   code: String!
@@ -55,6 +36,11 @@ type Coupon {
   createdAt: DateTime!
   updatedAt: DateTime!
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type Cart {
   id: Int!
@@ -161,6 +147,32 @@ enum CustomerTag {
   ONE_TIME
 }
 
+type Product {
+  id: Int!
+  title: String!
+  description: String!
+  markedPrice: Float!
+  displayPrice: Float!
+  discountPercentage: Float!
+  displayPriority: Int
+  categoryId: Int
+  brandId: Int
+  imageUrl: String
+  sellerId: String!
+  slug: String!
+  productStatus: ProductStatus!
+  availableQuantity: Int
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUTOFSTOCK
+  DRAFT
+}
+
 type Brand {
   id: Int!
   name: String!
@@ -179,14 +191,30 @@ type BrandCategory {
   category: Category!
 }
 
+type ProductResponse {
+  success: Boolean!
+  message: String!
+  data: Product
+}
+
+type ProductListResponse {
+  success: Boolean!
+  message: String!
+  data: [Product!]
+}
+
+type CountResponse {
+  success: Boolean!
+  message: String!
+  count: Int!
+}
+
 type Query {
   categories(offset: Int, limit: Int, showActive: Boolean): CategoryListResponse!
   category(id: Int!): CategoryResponse!
   categoryBySlug(slug: String!): CategoryResponse!
   subcategories(parentId: Int!): CategoryListResponse!
   totalCategories(showActive: Boolean): Int!
-  products(filter: FilterProductsInput): [Product!]!
-  product(id: Int!): Product!
   coupons: [Coupon!]!
   coupon(id: String!): Coupon!
   cart(userId: String!): Cart!
@@ -196,22 +224,9 @@ type Query {
   brands(categorySlug: String, featured: Boolean): [Brand!]!
   brand(slug: String!): Brand
   brandCategories: [BrandCategory!]!
-}
-
-input FilterProductsInput {
-  searchString: String
-  priceMin: Float
-  priceMax: Float
-  productStatus: ProductStatus
-  pageSize: Int = 10
-  pageOffset: Int = 0
-}
-
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-  OUTOFSTOCK
-  DRAFT
+  product(id: Int!): ProductResponse!
+  products(categoryId: Int, brandId: Int, minPrice: Float, maxPrice: Float, search: String): ProductListResponse!
+  productCount(categoryId: Int, brandId: Int, productStatus: ProductStatus, sellerId: String): CountResponse!
 }
 
 type Mutation {
@@ -230,6 +245,8 @@ type Mutation {
   addBrandToCategory(input: AddBrandToCategoryInput!): BrandCategory!
   updateBrandCategory(input: UpdateBrandCategoryInput!): BrandCategory!
   removeBrandFromCategory(brandId: Int!, categoryId: Int!): Boolean!
+  createProduct(data: CreateProductInput!): ProductResponse!
+  updateProduct(id: Int!, data: UpdateProductInput!): ProductResponse!
 }
 
 input CreateCategoryInput {
@@ -298,4 +315,32 @@ input UpdateBrandCategoryInput {
   categoryId: Int!
   featured: Boolean
   displayOrder: Int
+}
+
+input CreateProductInput {
+  title: String!
+  description: String!
+  markedPrice: Float!
+  displayPrice: Float!
+  displayPriority: Int
+  categoryId: Int
+  brandId: Int
+  imageUrl: String
+  sellerId: String!
+  slug: String!
+  availableQuantity: Int
+}
+
+input UpdateProductInput {
+  title: String
+  description: String
+  markedPrice: Float
+  displayPrice: Float
+  discountPercentage: Float
+  displayPriority: Int
+  categoryId: Int
+  brandId: Int
+  imageUrl: String
+  productStatus: ProductStatus
+  availableQuantity: Int
 }
