@@ -107,4 +107,12 @@ export class CategoryResolver {
   //     }
   //     return { success: true, data: result };
   //   }
+
+  @Query(() => Int)
+  async totalCategories(
+    @Args('showActive', { type: () => Boolean, nullable: true })
+    showActive?: boolean,
+  ): Promise<number> {
+    return this.categoryService.countCategories(showActive);
+  }
 }

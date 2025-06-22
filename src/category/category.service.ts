@@ -79,4 +79,12 @@ export class CategoryService {
     if (!category) throw new NotFoundException('Category not found');
     return category;
   }
+
+  async countCategories(showActive?: boolean): Promise<number> {
+    return this.prismaService.category.count({
+      where: {
+        isActive: showActive,
+      },
+    });
+  }
 }

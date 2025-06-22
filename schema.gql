@@ -183,6 +183,7 @@ type Query {
   category(id: Int!): CategoryResponse!
   categoryBySlug(slug: String!): CategoryResponse!
   subcategories(parentId: Int!): CategoryListResponse!
+  totalCategories(showActive: Boolean): Int!
   products(filter: FilterProductsInput): [Product!]!
   product(id: Int!): Product!
   coupons: [Coupon!]!
