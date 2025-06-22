@@ -11,6 +11,18 @@ type Category {
   children: [Category!]
 }
 
+type CategoryResponse {
+  success: Boolean!
+  message: String
+  data: Category
+}
+
+type CategoryListResponse {
+  success: Boolean!
+  message: String
+  data: [Category!]
+}
+
 type Product {
   id: Int!
   title: String!
@@ -58,6 +70,67 @@ type CartProduct {
   quantity: Int!
 }
 
+type User {
+  id: Int!
+  username: String!
+  password: String!
+}
+
+type OrderProduct {
+  id: Int!
+  orderId: Int!
+  productId: Int!
+  quantity: Int!
+  price: Float!
+  sellerOrderId: Int
+}
+
+type ReturnRequest {
+  id: Int!
+  orderId: Int!
+  reason: String!
+  status: String!
+  returnRequestReason: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CancelRequest {
+  id: Int!
+  orderId: Int!
+  reason: String!
+  status: String!
+  cancelRequestReason: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SellerOrder {
+  id: Int!
+  orderId: Int!
+  sellerId: String!
+  status: String!
+  sellerNote: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Order {
+  id: Int!
+  user: User!
+  products: [OrderProduct!]!
+  SellerOrder: [SellerOrder!]!
+  totalPrice: Float!
+  shippingCharges: Float!
+  orderStatus: String!
+  paymentStatus: String!
+  createdAt: DateTime!
+  paymentTime: DateTime!
+  updatedAt: DateTime!
+  returnRequests: [ReturnRequest!]
+  cancelRequests: [CancelRequest!]
+}
+
 type Address {
   addressLine1: String
   city: String
@@ -87,15 +160,40 @@ enum CustomerTag {
   ONE_TIME
 }
 
+type Brand {
+  id: Int!
+  name: String!
+  slug: String!
+  logoUrl: String
+  categories: [Category]!
+  products: [Product]!
+}
+
+type BrandCategory {
+  brandId: Int!
+  categoryId: Int!
+  featured: Boolean!
+  displayOrder: Int!
+  brand: Brand!
+  category: Category!
+}
+
 type Query {
-  categories: [Category!]!
-  category(id: Int!): Category!
+  categories: CategoryListResponse!
+  category(id: Int!): CategoryResponse!
+  categoryBySlug(slug: String!): CategoryResponse!
+  subcategories(parentId: Int!): CategoryListResponse!
   products(filter: FilterProductsInput): [Product!]!
   product(id: Int!): Product!
   coupons: [Coupon!]!
   coupon(id: String!): Coupon!
   cart(userId: String!): Cart!
+  orders: [Order!]!
+  order(id: Int!): Order!
   customersBySeller(sellerId: String!, search: String, limit: Int, offset: Int, sortBy: String, sortOrder: String, tag: CustomerTag): [CustomerSummary!]!
+  brands(categorySlug: String, featured: Boolean): [Brand!]!
+  brand(slug: String!): Brand
+  brandCategories: [BrandCategory!]!
 }
 
 input FilterProductsInput {
@@ -115,10 +213,35 @@ enum ProductStatus {
 }
 
 type Mutation {
+  createCategory(input: CreateCategoryInput!): CategoryResponse!
+  updateCategory(id: Int!, input: UpdateCategoryInput!): CategoryResponse!
   createCoupon(code: String!, discountValue: Float!, discountType: String!, validFrom: DateTime!, validTo: DateTime!, userId: String!): Coupon!
   updateCoupon(id: String!, updateData: UpdateCouponInput!): Coupon!
   deleteCoupon(id: String!): Boolean!
   addToCart(userId: String!, productId: Int!, quantity: Int!): Cart!
+  createOrder(user: UserInput!, seller: SellerInput!, products: [OrderProductInput!]!, totalPrice: Float!): Order!
+  createBrand(input: CreateBrandInput!): Brand!
+  updateBrand(id: Int!, input: UpdateBrandInput!): Brand!
+  deactivateBrand(id: Int!): Brand!
+  activateBrand(id: Int!): Brand!
+  deleteBrand(id: Int!): Boolean!
+  addBrandToCategory(input: AddBrandToCategoryInput!): BrandCategory!
+  updateBrandCategory(input: UpdateBrandCategoryInput!): BrandCategory!
+  removeBrandFromCategory(brandId: Int!, categoryId: Int!): Boolean!
+}
+
+input CreateCategoryInput {
+  name: String!
+  slug: String!
+  isActive: Boolean! = true
+  parentId: Int
+}
+
+input UpdateCategoryInput {
+  name: String
+  slug: String
+  isActive: Boolean
+  parentId: Int
 }
 
 input UpdateCouponInput {
@@ -130,4 +253,47 @@ input UpdateCouponInput {
   minPurchaseAmount: Float
   maxUsage: Int
   perCustomerLimit: Int
+}
+
+input UserInput {
+  id: String!
+  email: String!
+}
+
+input SellerInput {
+  id: String!
+}
+
+input OrderProductInput {
+  productId: Int!
+  quantity: Int!
+  price: Float!
+}
+
+input CreateBrandInput {
+  name: String!
+  slug: String!
+  logoUrl: String
+  categoryIds: [Int!]
+}
+
+input UpdateBrandInput {
+  name: String
+  slug: String
+  logoUrl: String
+  categoryIds: [Int!]
+}
+
+input AddBrandToCategoryInput {
+  brandId: Int!
+  categoryId: Int!
+  featured: Boolean! = false
+  displayOrder: Int! = 0
+}
+
+input UpdateBrandCategoryInput {
+  brandId: Int!
+  categoryId: Int!
+  featured: Boolean
+  displayOrder: Int
 }
