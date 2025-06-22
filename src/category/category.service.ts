@@ -6,10 +6,21 @@ import { CreateCategoryInput, UpdateCategoryInput } from './dto/category.input';
 export class CategoryService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async fetchAllCategories() {
+  async fetchAllCategories(params: {
+    offset: number;
+    limit: number;
+    showActive?: boolean;
+  }) {
+    const { offset, limit, showActive } = params;
+
     return this.prismaService.category.findMany({
-      where: { isActive: true, parentId: null },
-      include: { children: true },
+      skip: offset,
+      take: limit,
+      where: { isActive: showActive },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        children: true,
+      },
     });
   }
 
