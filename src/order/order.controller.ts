@@ -64,4 +64,51 @@ async getOrderById(@Param('id') id: string) {
 
     return this.orderService.fetchOrdersWithFilters(filters, { skip: Number(skip), take: Number(take) });
   }
+
+  // Return request endpoints
+  @Post(':id/return')
+  async createReturnRequest(
+    @Param('id') id: string,
+    @Body() body: { reason: string; returnRequestReason: string }
+  ) {
+    return this.orderService.createReturnRequest(
+      Number(id),
+      body.reason,
+      body.returnRequestReason
+    );
+  }
+
+  @Get(':id/return')
+  async getReturnRequests(@Param('id') id: string) {
+    return this.orderService.getReturnRequests(Number(id));
+  }
+
+  // Cancel request endpoints
+  @Post(':id/cancel')
+  async createCancelRequest(
+    @Param('id') id: string,
+    @Body() body: { reason: string; cancelRequestReason: string }
+  ) {
+    return this.orderService.createCancelRequest(
+      Number(id),
+      body.reason,
+      body.cancelRequestReason
+    );
+  }
+
+  @Get(':id/cancel')
+  async getCancelRequests(@Param('id') id: string) {
+    return this.orderService.getCancelRequests(Number(id));
+  }
+
+  // Seller-specific return and cancel requests
+  @Get('seller/:sellerId/returns')
+  async getSellerReturnRequests(@Param('sellerId') sellerId: string) {
+    return this.orderService.getSellerReturnRequests(sellerId);
+  }
+
+  @Get('seller/:sellerId/cancellations')
+  async getSellerCancelRequests(@Param('sellerId') sellerId: string) {
+    return this.orderService.getSellerCancelRequests(sellerId);
+  }
 }

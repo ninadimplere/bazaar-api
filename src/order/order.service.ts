@@ -28,10 +28,10 @@ export class OrderService {
         returnRequests: true,
         cancelRequests: true,
       },
-    });
-  }  async getOrderById(id: number) {
+    });  }  async getOrderById(id: number) {
     return this.prismaService.order.findUnique({
-      where: { id },      include: {
+      where: { id: id },
+      include: {
         user: {
           include: {
             UserProfile: true,
@@ -132,17 +132,169 @@ export class OrderService {
       take: pagination.take,
     });
   }
-
   async getOrderCounts() {
     return {
-      total: await this.prismaService.order.count(),
-      pending: await this.prismaService.order.count({ where: { orderStatus: 'PENDING' } }),
-      shipped: await this.prismaService.order.count({ where: { orderStatus: 'SHIPPED' } }),
-      delivered: await this.prismaService.order.count({ where: { orderStatus: 'DELIVERED' } }),
-      cancelled: await this.prismaService.order.count({ where: { orderStatus: 'CANCELLED' } }),
-      refunded: await this.prismaService.order.count({ where: { orderStatus: 'REFUNDED' } }),
-      processing: await this.prismaService.order.count({ where: { orderStatus: 'PROCESSING' } }),
-      failed: await this.prismaService.order.count({ where: { orderStatus: 'FAILED' } }),
+      active: await this.prismaService.order.count(),
+      return: await this.prismaService.returnRequest.count(),
+      cancel: await this.prismaService.cancelRequest.count()
     };
+  }
+
+  // Create a return request for an order
+  async createReturnRequest(orderId: number, reason: string, returnRequestReason: string) {
+    // First check if the order exists and is in a valid status for return
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    // Only allow returns for delivered orders
+    if (order.orderStatus !== 'DELIVERED') {
+      throw new Error(`Order must be in DELIVERED status to request a return. Current status: ${order.orderStatus}`);
+    }
+
+    // Create the return request
+    const returnRequest = await this.prismaService.returnRequest.create({
+      data: {
+        order: { connect: { id: orderId } },
+        reason,
+        returnRequestReason,
+        status: 'PENDING',
+      },
+    });
+
+    // Update the order status
+    await this.prismaService.order.update({
+      where: { id: orderId },
+      data: { orderStatus: 'RETURNED' },
+    });
+
+    return returnRequest;
+  }
+
+  // Create a cancellation request for an order
+  async createCancelRequest(orderId: number, reason: string, cancelRequestReason: string) {
+    // First check if the order exists and is in a valid status for cancellation
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    // Only allow cancellations for pending or processing orders
+    if (order.orderStatus !== 'PENDING' && order.orderStatus !== 'PROCESSING') {
+      throw new Error(
+        `Order must be in PENDING or PROCESSING status to request cancellation. Current status: ${order.orderStatus}`
+      );
+    }
+
+    // Create the cancel request
+    const cancelRequest = await this.prismaService.cancelRequest.create({
+      data: {
+        order: { connect: { id: orderId } },
+        reason,
+        cancelRequestReason,
+        status: 'PENDING',
+      },
+    });
+
+    // Update the order status
+    await this.prismaService.order.update({
+      where: { id: orderId },
+      data: { orderStatus: 'CANCELLED' },
+    });
+
+    return cancelRequest;
+  }
+
+  // Get return requests for an order
+  async getReturnRequests(orderId: number) {
+    return this.prismaService.returnRequest.findMany({
+      where: { orderId },
+    });
+  }
+
+  // Get cancel requests for an order
+  async getCancelRequests(orderId: number) {
+    return this.prismaService.cancelRequest.findMany({
+      where: { orderId },
+    });
+  }
+
+  // Get return requests for a seller
+  async getSellerReturnRequests(sellerId: string) {
+    // First get all orders associated with this seller
+    const sellerOrders = await this.prismaService.sellerOrder.findMany({
+      where: { sellerId },
+      select: { orderId: true },
+    });
+
+    // Extract the order IDs
+    const orderIds = sellerOrders.map(order => order.orderId);
+
+    // Now get all return requests for these orders
+    return this.prismaService.returnRequest.findMany({
+      where: { 
+        orderId: { in: orderIds } 
+      },
+      include: {
+        order: {
+          include: {
+            user: {
+              include: {
+                UserProfile: true,
+                addresses: true
+              }
+            },
+            products: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Get cancel requests for a seller
+  async getSellerCancelRequests(sellerId: string) {
+    // First get all orders associated with this seller
+    const sellerOrders = await this.prismaService.sellerOrder.findMany({
+      where: { sellerId },
+      select: { orderId: true },
+    });
+
+    // Extract the order IDs
+    const orderIds = sellerOrders.map(order => order.orderId);
+
+    // Now get all cancel requests for these orders
+    return this.prismaService.cancelRequest.findMany({
+      where: { 
+        orderId: { in: orderIds } 
+      },
+      include: {
+        order: {
+          include: {
+            user: {
+              include: {
+                UserProfile: true,
+                addresses: true
+              }
+            },
+            products: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 }
