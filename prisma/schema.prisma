@@ -151,6 +151,7 @@ model Category {
   updatedAt     DateTime        @updatedAt
   Product       Product[]
   BrandCategory BrandCategory[]
+  coupons       Coupon[]        @relation("CategoryCoupons")
 }
 
 model Brand {
@@ -274,17 +275,25 @@ model OrderProduct {
 model Coupon {
   id                 Int       @id @default(autoincrement())
   code               String    @unique
+  title              String? // Title for the promotion
+  description        String? // Description of the coupon or promotion
   discountType       String // 'PERCENTAGE' or 'FIXED'
   discountValue      Float
   validFrom          DateTime
   validTo            DateTime
   minPurchaseAmount  Float?
   maxUsage           Int?
+  usageCount         Int       @default(0) // Track how many times this coupon has been used
   perCustomerLimit   Int?
+  isActive           Boolean   @default(true) // Whether this coupon is currently active
   applicableProducts Product[] @relation("ProductCoupons") // Relation to multiple products
+  applicableCategories Category[] @relation("CategoryCoupons") // Relation to categories
   createdBy          String // Seller ID
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  imageUrl           String? // Image for promotion display
+  promotionType      String?  @default("COUPON") // COUPON, SALE, SPECIAL_OFFER, etc.
+  targetAudience     String?  // NEW_CUSTOMERS, RETURNING_CUSTOMERS, ALL, etc.
 
   carts  Cart[] // Relation to Cart
   orders Order[] // Relation to Order

@@ -1,41 +1,20 @@
 import { Resolver, Query, Mutation, Args, InputType, Field, Int, Float } from '@nestjs/graphql';
 import { CouponsService } from './coupons.service';
 import { Coupon } from './coupons.entity';
-
-@InputType()
-class UpdateCouponInput {
-  @Field({ nullable: true })
-  code?: string;
-
-  @Field(() => Float, { nullable: true })
-  discountValue?: number;
-
-  @Field({ nullable: true })
-  discountType?: string;
-
-  @Field({ nullable: true })
-  validFrom?: Date;
-
-  @Field({ nullable: true })
-  validTo?: Date;
-
-  @Field(() => Float, { nullable: true })
-  minPurchaseAmount?: number;
-
-  @Field(() => Int, { nullable: true })
-  maxUsage?: number;
-
-  @Field(() => Int, { nullable: true })
-  perCustomerLimit?: number;
-}
+import { CreateCouponInput } from './dto/create-coupon.dto';
+import { UpdateCouponInput } from './dto/update-coupon.dto';
+import { FilterCouponInput } from './dto/filter-coupon.dto';
+import { ValidateCouponOutput } from './dto/validate-coupon.dto';
 
 @Resolver(() => Coupon)
 export class CouponsResolver {
   constructor(private readonly couponsService: CouponsService) {}
 
   @Query(() => [Coupon])
-  async coupons(): Promise<Coupon[]> {
-    return this.couponsService.getAllCoupons();
+  async coupons(
+    @Args('filter', { nullable: true }) filter?: FilterCouponInput
+  ): Promise<Coupon[]> {
+    return this.couponsService.getAllCoupons(filter);
   }
 
   @Query(() => Coupon)
@@ -43,29 +22,69 @@ export class CouponsResolver {
     return this.couponsService.getCouponById(Number(id));
   }
 
+  @Query(() => [Coupon])
+  async couponsBySeller(
+    @Args('sellerId') sellerId: string
+  ): Promise<Coupon[]> {
+    return this.couponsService.getCouponsBySeller(sellerId);
+  }
+
+  @Query(() => [Coupon])
+  async couponsForProduct(
+    @Args('productId', { type: () => Int }) productId: number
+  ): Promise<Coupon[]> {
+    return this.couponsService.getCouponsForProduct(productId);
+  }
+
+  @Query(() => [Coupon])
+  async couponsForCategory(
+    @Args('categoryId', { type: () => Int }) categoryId: number
+  ): Promise<Coupon[]> {
+    return this.couponsService.getCouponsForCategory(categoryId);
+  }
   @Mutation(() => Coupon)
-async createCoupon(
-  @Args('code') code: string,
-  @Args('discountValue') discountValue: number,
-  @Args('discountType') discountType: string,
-  @Args('validFrom') validFrom: Date,
-  @Args('validTo') validTo: Date,
-  @Args('userId') userId: string, // Add userId as an argument
-): Promise<Coupon> {
-  return this.couponsService.createCoupon(code, discountValue, discountType, validFrom, validTo, userId);
-}
+  async createCoupon(
+    @Args('input') createCouponInput: CreateCouponInput
+  ): Promise<Coupon> {
+    return this.couponsService.createCoupon(createCouponInput);
+  }
 
   @Mutation(() => Coupon)
   async updateCoupon(
     @Args('id') id: string,
-    @Args('updateData') updateData: UpdateCouponInput,
+    @Args('input') updateCouponInput: UpdateCouponInput
   ): Promise<Coupon> {
-    return this.couponsService.updateCoupon(Number(id), updateData);
+    return this.couponsService.updateCoupon(Number(id), updateCouponInput);
   }
 
   @Mutation(() => Boolean)
   async deleteCoupon(@Args('id') id: string): Promise<boolean> {
     await this.couponsService.deleteCoupon(Number(id));
+    return true;
+  }
+
+  @Mutation(() => Coupon)
+  async toggleCouponStatus(
+    @Args('id') id: string,
+    @Args('isActive') isActive: boolean
+  ): Promise<Coupon> {
+    return this.couponsService.toggleCouponStatus(Number(id), isActive);
+  }
+  @Mutation(() => ValidateCouponOutput)
+  async validateCoupon(
+    @Args('code') code: string,
+    @Args('userId') userId: string,
+    @Args('cartTotal', { type: () => Float }) cartTotal: number
+  ): Promise<ValidateCouponOutput> {
+    return this.couponsService.validateCoupon(code, userId, cartTotal);
+  }
+
+  @Mutation(() => Boolean)
+  async applyCouponToOrder(
+    @Args('couponId', { type: () => Int }) couponId: number,
+    @Args('orderId', { type: () => Int }) orderId: number
+  ): Promise<boolean> {
+    await this.couponsService.applyCouponToOrder(couponId, orderId);
     return true;
   }
 }

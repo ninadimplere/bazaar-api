@@ -1,4 +1,6 @@
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { Product } from '../product/dto/product.model';
+import { Category } from '../category/dto/category.entity';
 
 @ObjectType()
 export class Coupon {
@@ -8,23 +10,56 @@ export class Coupon {
   @Field()
   code: string;
 
+  @Field({ nullable: true })
+  title?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
   @Field(() => Float)
   discountValue: number;
 
   @Field()
   discountType: string; // 'PERCENTAGE' or 'FIXED'
 
-  @Field({ nullable: true })
-  expirationDate?: Date;
+  @Field()
+  validFrom: Date;
+
+  @Field()
+  validTo: Date;
 
   @Field(() => Float, { nullable: true })
-  minPurchaseAmount?: number | null; // Allow null values
+  minPurchaseAmount?: number | null;
 
   @Field(() => Int, { nullable: true })
-  maxUsage?: number | null; // Allow null values
+  maxUsage?: number | null;
+
+  @Field(() => Int)
+  usageCount: number;
 
   @Field(() => Int, { nullable: true })
-  perCustomerLimit?: number | null; // Allow null values
+  perCustomerLimit?: number | null;
+
+  @Field()
+  isActive: boolean;
+
+  @Field({ nullable: true })
+  imageUrl?: string;
+
+  @Field({ nullable: true })
+  promotionType?: string;
+
+  @Field({ nullable: true })
+  targetAudience?: string;
+
+  @Field()
+  createdBy: string;
+
+  @Field(() => [Product], { nullable: true })
+  applicableProducts?: Product[];
+
+  @Field(() => [Category], { nullable: true })
+  applicableCategories?: Category[];
 
   @Field()
   createdAt: Date;

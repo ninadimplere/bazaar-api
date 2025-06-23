@@ -24,23 +24,66 @@ type CategoryListResponse {
   data: [Category!]
 }
 
-type Coupon {
+type Product {
   id: Int!
-  code: String!
-  discountValue: Float!
-  discountType: String!
-  expirationDate: DateTime
-  minPurchaseAmount: Float
-  maxUsage: Int
-  perCustomerLimit: Int
+  title: String!
+  description: String!
+  markedPrice: Float!
+  displayPrice: Float!
+  discountPercentage: Float!
+  displayPriority: Int
+  categoryId: Int
+  brandId: Int
+  imageUrl: String
+  sellerId: String!
+  slug: String!
+  productStatus: ProductStatus!
+  availableQuantity: Int
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUTOFSTOCK
+  DRAFT
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Coupon {
+  id: Int!
+  code: String!
+  title: String
+  description: String
+  discountValue: Float!
+  discountType: String!
+  validFrom: DateTime!
+  validTo: DateTime!
+  minPurchaseAmount: Float
+  maxUsage: Int
+  usageCount: Int!
+  perCustomerLimit: Int
+  isActive: Boolean!
+  imageUrl: String
+  promotionType: String
+  targetAudience: String
+  createdBy: String!
+  applicableProducts: [Product!]
+  applicableCategories: [Category!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ValidateCouponOutput {
+  valid: Boolean!
+  coupon: Coupon
+  message: String
+}
 
 type Cart {
   id: Int!
@@ -147,32 +190,6 @@ enum CustomerTag {
   ONE_TIME
 }
 
-type Product {
-  id: Int!
-  title: String!
-  description: String!
-  markedPrice: Float!
-  displayPrice: Float!
-  discountPercentage: Float!
-  displayPriority: Int
-  categoryId: Int
-  brandId: Int
-  imageUrl: String
-  sellerId: String!
-  slug: String!
-  productStatus: ProductStatus!
-  availableQuantity: Int
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-  OUTOFSTOCK
-  DRAFT
-}
-
 type Brand {
   id: Int!
   name: String!
@@ -210,61 +227,46 @@ type CountResponse {
 }
 
 type Query {
-  categories(offset: Int, limit: Int, showActive: Boolean): CategoryListResponse!
-  category(id: Int!): CategoryResponse!
-  categoryBySlug(slug: String!): CategoryResponse!
-  subcategories(parentId: Int!): CategoryListResponse!
-  totalCategories(showActive: Boolean): Int!
+  categories: [Category!]!
+  category(id: Int!): Category!
+  products(filter: FilterProductsInput): [Product!]!
+  product(id: Int!): Product!
   coupons: [Coupon!]!
   coupon(id: String!): Coupon!
   cart(userId: String!): Cart!
-  orders: [Order!]!
-  order(id: Int!): Order!
   customersBySeller(sellerId: String!, search: String, limit: Int, offset: Int, sortBy: String, sortOrder: String, tag: CustomerTag): [CustomerSummary!]!
-  brands(categorySlug: String, featured: Boolean): [Brand!]!
-  brand(slug: String!): Brand
-  brandCategories: [BrandCategory!]!
-  product(id: Int!): ProductResponse!
-  products(categoryId: Int, brandId: Int, minPrice: Float, maxPrice: Float, search: String): ProductListResponse!
-  productCount(categoryId: Int, brandId: Int, productStatus: ProductStatus, sellerId: String): CountResponse!
+}
+
+input FilterProductsInput {
+  searchString: String
+  priceMin: Float
+  priceMax: Float
+  productStatus: ProductStatus
+  pageSize: Int = 10
+  pageOffset: Int = 0
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUTOFSTOCK
+  DRAFT
 }
 
 type Mutation {
-  createCategory(input: CreateCategoryInput!): CategoryResponse!
-  updateCategory(id: Int!, input: UpdateCategoryInput!): CategoryResponse!
   createCoupon(code: String!, discountValue: Float!, discountType: String!, validFrom: DateTime!, validTo: DateTime!, userId: String!): Coupon!
   updateCoupon(id: String!, updateData: UpdateCouponInput!): Coupon!
   deleteCoupon(id: String!): Boolean!
+  toggleCouponStatus(id: String!, isActive: Boolean!): Coupon!
+  validateCoupon(code: String!, userId: String!, cartTotal: Float!): ValidateCouponOutput!
+  applyCouponToOrder(couponId: Int!, orderId: Int!): Boolean!
   addToCart(userId: String!, productId: Int!, quantity: Int!): Cart!
-  createOrder(user: UserInput!, seller: SellerInput!, products: [OrderProductInput!]!, totalPrice: Float!): Order!
-  createBrand(input: CreateBrandInput!): Brand!
-  updateBrand(id: Int!, input: UpdateBrandInput!): Brand!
-  deactivateBrand(id: Int!): Brand!
-  activateBrand(id: Int!): Brand!
-  deleteBrand(id: Int!): Boolean!
-  addBrandToCategory(input: AddBrandToCategoryInput!): BrandCategory!
-  updateBrandCategory(input: UpdateBrandCategoryInput!): BrandCategory!
-  removeBrandFromCategory(brandId: Int!, categoryId: Int!): Boolean!
-  createProduct(data: CreateProductInput!): ProductResponse!
-  updateProduct(id: Int!, data: UpdateProductInput!): ProductResponse!
-}
-
-input CreateCategoryInput {
-  name: String!
-  slug: String!
-  isActive: Boolean! = true
-  parentId: Int
-}
-
-input UpdateCategoryInput {
-  name: String
-  slug: String
-  isActive: Boolean
-  parentId: Int
 }
 
 input UpdateCouponInput {
   code: String
+  title: String
+  description: String
   discountValue: Float
   discountType: String
   validFrom: DateTime
@@ -272,6 +274,12 @@ input UpdateCouponInput {
   minPurchaseAmount: Float
   maxUsage: Int
   perCustomerLimit: Int
+  applicableProductIds: [Int!]
+  applicableCategoryIds: [Int!]
+  imageUrl: String
+  promotionType: String
+  targetAudience: String
+  isActive: Boolean
 }
 
 input UserInput {
