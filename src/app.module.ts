@@ -19,6 +19,8 @@ import { CustomersModule } from 'customers/list/customer-list.module';
 import { BrandModule } from 'brand/brand.module';
 import { BrandCategoryModule } from 'brand/brand-category/brand-category.module';
 import { ProductModule } from 'product/product.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ScheduledTasksService } from './common/scheduled-tasks.service';
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { ProductModule } from 'product/product.module';
       playground: true,
       introspection: true,
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     PrismaModule,
@@ -49,6 +52,6 @@ import { ProductModule } from 'product/product.module';
     ProductModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ScheduledTasksService],
 })
 export class AppModule {}

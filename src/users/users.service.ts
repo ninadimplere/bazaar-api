@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserProfileDto } from '../register/register.dto';
+import { SpenderType } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -64,5 +65,25 @@ export class UsersService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
     return user;
+  }
+
+  async getUserSpenderType(userId: string): Promise<SpenderType> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { spenderType: true },
+    });
+    
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    
+    return user.spenderType;
+  }
+
+  async updateUserSpenderType(userId: string, spenderType: SpenderType): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { spenderType },
+    });
   }
 }

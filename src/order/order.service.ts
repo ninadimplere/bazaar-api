@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { SpenderTypeService } from '../users/spender-type.service';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prismaService: PrismaService) {}  async fetchAllOrders(): Promise<any> {
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly spenderTypeService: SpenderTypeService
+  ) {}async fetchAllOrders(): Promise<any> {
     return this.prismaService.order.findMany({
       include: {
         user: {
@@ -54,8 +58,7 @@ export class OrderService {
         cancelRequests: true,
       },
     });
-  }
-  async createOrder(user: { id: string; email: string }, seller: { id: string }, products: any[], totalPrice: number) {
+  }  async createOrder(user: { id: string; email: string }, seller: { id: string }, products: any[], totalPrice: number) {
     // Create the main order
     const order = await this.prismaService.order.create({
       data: {
@@ -92,26 +95,48 @@ export class OrderService {
         SellerOrder: true
       }
     });
-  }
 
+    // Update the user's spender type based on their order history
+    await this.spenderTypeService.updateUserSpenderType(user.id);
+    
+    return order;
+  }
   async updateOrderStatus(orderId: number, status: OrderStatus) {
-    return this.prismaService.order.update({
+    const updatedOrder = await this.prismaService.order.update({
       where: { id: orderId },
       data: { orderStatus: status },
+      include: {
+        user: true,
+      },
     });
-  }
 
+    // Update the user's spender type after order status changes
+    if (updatedOrder.user && updatedOrder.user.id) {
+      await this.spenderTypeService.updateUserSpenderType(updatedOrder.user.id);
+    }
+
+    return updatedOrder;
+  }
   // Add new method for bulk order status updates
   async updateMultipleOrderStatuses(orderIds: number[], status: OrderStatus) {
     // Use Prisma transaction to ensure all updates succeed or none do
-    return this.prismaService.$transaction(
+    const updatedOrders = await this.prismaService.$transaction(
       orderIds.map(id => 
         this.prismaService.order.update({
           where: { id },
           data: { orderStatus: status },
+          include: { user: true },
         })
       )
     );
+
+    // Update spender type for all affected users
+    const userIds = new Set(updatedOrders.map(order => order.user?.id).filter(Boolean));
+    for (const userId of userIds) {
+      await this.spenderTypeService.updateUserSpenderType(userId);
+    }
+
+    return updatedOrders;
   }
 
   async fetchOrdersWithFilters(filters: any, pagination: { skip: number; take: number }) {
@@ -139,12 +164,12 @@ export class OrderService {
       cancel: await this.prismaService.cancelRequest.count()
     };
   }
-
   // Create a return request for an order
   async createReturnRequest(orderId: number, reason: string, returnRequestReason: string) {
     // First check if the order exists and is in a valid status for return
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
+      include: { user: true },
     });
 
     if (!order) {
@@ -172,6 +197,11 @@ export class OrderService {
       data: { orderStatus: 'RETURNED' },
     });
 
+    // Update the user's spender type
+    if (order.user && order.user.id) {
+      await this.spenderTypeService.updateUserSpenderType(order.user.id);
+    }
+
     return returnRequest;
   }
 
@@ -180,6 +210,7 @@ export class OrderService {
     // First check if the order exists and is in a valid status for cancellation
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
+      include: { user: true },
     });
 
     if (!order) {
@@ -208,6 +239,11 @@ export class OrderService {
       where: { id: orderId },
       data: { orderStatus: 'CANCELLED' },
     });
+
+    // Update the user's spender type
+    if (order.user && order.user.id) {
+      await this.spenderTypeService.updateUserSpenderType(order.user.id);
+    }
 
     return cancelRequest;
   }
