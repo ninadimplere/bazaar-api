@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Coupon } from './coupons.entity';
-import { CreateCouponInput, PromotionType, TargetAudience } from './dto/create-coupon.dto';
+import { CreateCouponInput, PromotionTypeEnum, CouponTypeEnum } from './dto/create-coupon.dto';
 import { UpdateCouponInput } from './dto/update-coupon.dto';
 import { FilterCouponInput } from './dto/filter-coupon.dto';
 import { ValidateCouponOutput } from './dto/validate-coupon.dto';
+import { CouponType, PromotionType, SpenderType } from '@prisma/client';
 
 @Injectable()
 export class CouponsService {
@@ -17,7 +18,6 @@ export class CouponsService {
     const { 
       code, 
       discountValue, 
-      discountType, 
       validFrom, 
       validTo, 
       createdBy,
@@ -27,8 +27,10 @@ export class CouponsService {
       title,
       description,
       imageUrl,
+      isPromotion = false, // Default to false (it's a coupon, not a promotion)
       promotionType,
-      targetAudience,
+      couponType,
+      targetSpenderTypes = [], // Default to empty array
       applicableProductIds,
       applicableCategoryIds
     } = createCouponInput;
@@ -42,12 +44,20 @@ export class CouponsService {
       throw new BadRequestException(`Coupon with code ${code} already exists`);
     }
 
-    // Create the coupon with basic fields that exist in our schema
+    // Validate type selections based on isPromotion
+    if (isPromotion && !promotionType) {
+      throw new BadRequestException('Promotion type is required for promotions');
+    }
+
+    if (!isPromotion && !couponType) {
+      throw new BadRequestException('Coupon type is required for coupons');
+    }
+
+    // Create the coupon with updated fields that exist in our schema
     const newCoupon = await this.prismaService.coupon.create({
       data: {
         code,
         discountValue,
-        discountType,
         validFrom,
         validTo,
         createdBy,
@@ -57,8 +67,10 @@ export class CouponsService {
         title,
         description,
         imageUrl,
-        promotionType,
-        targetAudience,
+        isPromotion,
+        promotionType: isPromotion ? promotionType : null,
+        couponType: !isPromotion ? couponType : null,
+        targetSpenderTypes,
         // Connect products if applicable
         ...(applicableProductIds && applicableProductIds.length > 0 ? {
           applicableProducts: {
@@ -111,7 +123,10 @@ export class CouponsService {
   async getAllCoupons(filter?: FilterCouponInput): Promise<Coupon[]> {
     const { 
       searchQuery, 
-      promotionType, 
+      promotionType,
+      isPromotion, // New filter
+      couponType, // New filter
+      spenderType, // New filter
       isActive, 
       sellerId, 
       productId,
@@ -135,8 +150,26 @@ export class CouponsService {
       where.createdBy = sellerId;
     }
     
-    if (promotionType) {
+    // Filter by isPromotion if specified
+    if (isPromotion !== undefined) {
+      where.isPromotion = isPromotion;
+    }
+    
+    // Filter by promotion type if specified and isPromotion is true or undefined
+    if (promotionType && (isPromotion === true || isPromotion === undefined)) {
       where.promotionType = promotionType;
+    }
+    
+    // Filter by coupon type if specified and isPromotion is false or undefined
+    if (couponType && (isPromotion === false || isPromotion === undefined)) {
+      where.couponType = couponType;
+    }
+    
+    // Filter by spender type if specified
+    if (spenderType) {
+      where.targetSpenderTypes = {
+        hasSome: [spenderType]
+      };
     }
     
     if (isActive !== undefined) {
@@ -181,19 +214,44 @@ export class CouponsService {
    */
   async updateCoupon(id: number, updateData: UpdateCouponInput): Promise<Coupon> {
     // First check if the coupon exists
-    await this.getCouponById(id);
+    const existingCoupon = await this.getCouponById(id);
 
     const {
       applicableProductIds,
       applicableCategoryIds,
+      isPromotion,
+      promotionType,
+      couponType,
+      targetSpenderTypes,
       ...restUpdateData
     } = updateData;
+
+    // Validate type selections based on isPromotion
+    if (isPromotion !== undefined) {
+      if (isPromotion && !promotionType && !existingCoupon.promotionType) {
+        throw new BadRequestException('Promotion type is required for promotions');
+      }
+
+      if (!isPromotion && !couponType && !existingCoupon.couponType) {
+        throw new BadRequestException('Coupon type is required for coupons');
+      }
+    }
 
     // Update the coupon
     const updatedCoupon = await this.prismaService.coupon.update({
       where: { id },
       data: {
         ...restUpdateData,
+        // Only update isPromotion if it's provided
+        ...(isPromotion !== undefined ? { isPromotion } : {}),
+        // Only update promotion type if it's provided and it's a promotion
+        ...(promotionType && (isPromotion === true || (isPromotion === undefined && existingCoupon.isPromotion)) ? 
+            { promotionType } : {}),
+        // Only update coupon type if it's provided and it's a coupon
+        ...(couponType && (isPromotion === false || (isPromotion === undefined && !existingCoupon.isPromotion)) ? 
+            { couponType } : {}),
+        // Update targetSpenderTypes if provided
+        ...(targetSpenderTypes ? { targetSpenderTypes } : {}),
         // Update product connections if provided
         ...(applicableProductIds ? {
           applicableProducts: {
@@ -411,5 +469,62 @@ export class CouponsService {
         }
       }
     });
+  }
+
+  /**
+   * Get coupons for a user's spender type
+   */
+  async getCouponsForUserSpenderType(userId: string): Promise<Coupon[]> {
+    // First get the user's spender type
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { spenderType: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Get all coupons that target this user's spender type or that have no specific target
+    const coupons = await this.prismaService.coupon.findMany({
+      where: {
+        OR: [
+          { targetSpenderTypes: { hasSome: [user.spenderType] } },
+          { targetSpenderTypes: { isEmpty: true } } // Coupons with no specific target are available to all
+        ],
+        isActive: true,
+        validFrom: { lte: new Date() },
+        validTo: { gte: new Date() }
+      },
+      include: {
+        applicableProducts: true,
+        applicableCategories: true
+      }
+    });
+
+    return coupons as unknown as Coupon[];
+  }
+
+  /**
+   * Get coupons by spender type
+   */
+  async getCouponsBySpenderType(spenderType: SpenderType): Promise<Coupon[]> {
+    const coupons = await this.prismaService.coupon.findMany({
+      where: {
+        OR: [
+          { targetSpenderTypes: { hasSome: [spenderType] } },
+          { targetSpenderTypes: { isEmpty: true } } // Coupons with no specific target are available to all
+        ],
+        isActive: true,
+        validFrom: { lte: new Date() },
+        validTo: { gte: new Date() }
+      },
+      include: {
+        applicableProducts: true,
+        applicableCategories: true
+      }
+    });
+
+    return coupons as unknown as Coupon[];
   }
 }

@@ -1,6 +1,7 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional, IsBoolean, IsEnum } from 'class-validator';
-import { PromotionType } from './create-coupon.dto';
+import { CouponTypeEnum, PromotionTypeEnum } from './create-coupon.dto';
+import { SpenderType } from '@prisma/client';
 
 @InputType()
 export class FilterCouponInput {
@@ -9,10 +10,25 @@ export class FilterCouponInput {
   @IsOptional()
   searchQuery?: string;
 
-  @Field({ nullable: true })
-  @IsEnum(PromotionType)
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
   @IsOptional()
-  promotionType?: PromotionType;
+  isPromotion?: boolean;
+
+  @Field(() => PromotionTypeEnum, { nullable: true })
+  @IsEnum(PromotionTypeEnum)
+  @IsOptional()
+  promotionType?: PromotionTypeEnum;
+
+  @Field(() => CouponTypeEnum, { nullable: true })
+  @IsEnum(CouponTypeEnum)
+  @IsOptional()
+  couponType?: CouponTypeEnum;
+
+  @Field(() => SpenderType, { nullable: true })
+  @IsEnum(SpenderType)
+  @IsOptional()
+  spenderType?: SpenderType;
 
   @Field({ nullable: true })
   @IsBoolean()

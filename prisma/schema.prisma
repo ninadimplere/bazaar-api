@@ -69,6 +69,24 @@ enum SpenderType {
   HIGH_SPENDER
 }
 
+enum CouponType {
+  PERCENTAGE_DISCOUNT // e.g. 20% Off
+  FIXED_AMOUNT // e.g. $100 Off
+  FREE_SHIPPING // e.g. Free Shipping
+  MINIMUM_PURCHASE_DISCOUNT // e.g. $50 Off with minimum purchase
+  LIMITED_TIME_DISCOUNT // e.g. 15% Off (Max ₹300)
+  BULK_PURCHASE_DISCOUNT // e.g. $500 Off ($5,000 min)
+}
+
+enum PromotionType {
+  PERCENTAGE_DISCOUNT // e.g. "Summer Sale 20%"
+  FLASH_SALE // e.g. "Flash Friday Deal", "Weekend Steal"
+  COUPON_BASED // e.g. "New User 10% OFF", "Loyalty Reward Coupon"
+  BOGO // Buy One Get One, e.g. "BOGO Festival Pack"
+  FREE_SHIPPING // e.g. "Free Shipping Month"
+  FLAT_DISCOUNT // e.g. "Clearance Flat ₹100 OFF", "Save More with ₹200"
+}
+
 model User {
   id           String      @id @default(cuid())
   email        String?     @unique
@@ -281,27 +299,32 @@ model OrderProduct {
 }
 
 model Coupon {
-  id                 Int       @id @default(autoincrement())
-  code               String    @unique
+  id                 Int           @id @default(autoincrement())
+  code               String        @unique
   title              String? // Title for the promotion
   description        String? // Description of the coupon or promotion
-  discountType       String // 'PERCENTAGE' or 'FIXED'
   discountValue      Float
   validFrom          DateTime
   validTo            DateTime
   minPurchaseAmount  Float?
   maxUsage           Int?
-  usageCount         Int       @default(0) // Track how many times this coupon has been used
+  usageCount         Int           @default(0) // Track how many times this coupon has been used
   perCustomerLimit   Int?
-  isActive           Boolean   @default(true) // Whether this coupon is currently active
-  applicableProducts Product[] @relation("ProductCoupons") // Relation to multiple products
-  applicableCategories Category[] @relation("CategoryCoupons") // Relation to categories
+  isActive           Boolean       @default(true) // Whether this coupon is currently active
+  applicableProducts Product[]     @relation("ProductCoupons") // Relation to multiple products
+  applicableCategories Category[]  @relation("CategoryCoupons") // Relation to categories
   createdBy          String // Seller ID
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
   imageUrl           String? // Image for promotion display
-  promotionType      String?  @default("COUPON") // COUPON, SALE, SPECIAL_OFFER, etc.
-  targetAudience     String?  // NEW_CUSTOMERS, RETURNING_CUSTOMERS, ALL, etc.
+  
+  // Fields for differentiation between coupons and promotions
+  isPromotion        Boolean       @default(false) // True if it's a promotion, false if it's a coupon
+  couponType         CouponType?   // Type of coupon if isPromotion is false
+  promotionType      PromotionType? // Type of promotion if isPromotion is true
+  
+  // Target audience segmentation
+  targetSpenderTypes SpenderType[] // Which spender types this coupon/promotion is for
 
   carts  Cart[] // Relation to Cart
   orders Order[] // Relation to Order

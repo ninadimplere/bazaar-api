@@ -5,6 +5,7 @@ import { CreateCouponInput } from './dto/create-coupon.dto';
 import { UpdateCouponInput } from './dto/update-coupon.dto';
 import { FilterCouponInput } from './dto/filter-coupon.dto';
 import { ValidateCouponOutput } from './dto/validate-coupon.dto';
+import { SpenderType } from '@prisma/client';
 
 @Controller('coupons')
 export class CouponsController {
@@ -77,5 +78,15 @@ export class CouponsController {
     @Param('orderId') orderId: string,
   ): Promise<void> {
     await this.couponsService.applyCouponToOrder(Number(couponId), Number(orderId));
+  }
+
+  @Get('user-spender-type/:userId')
+  async getCouponsForUserSpenderType(@Param('userId') userId: string): Promise<Coupon[]> {
+    return this.couponsService.getCouponsForUserSpenderType(userId);
+  }
+
+  @Get('spender-type/:spenderType')
+  async getCouponsBySpenderType(@Param('spenderType') spenderType: SpenderType): Promise<Coupon[]> {
+    return this.couponsService.getCouponsBySpenderType(spenderType);
   }
 }

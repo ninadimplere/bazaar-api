@@ -1,25 +1,31 @@
-import { InputType, Field, Int, Float } from '@nestjs/graphql';
+import { InputType, Field, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional, IsBoolean, IsArray, IsDateString, IsEnum } from 'class-validator';
+import { SpenderType } from '@prisma/client';
 
-export enum DiscountType {
-  PERCENTAGE = 'PERCENTAGE',
-  FIXED = 'FIXED',
-}
-
-export enum PromotionType {
-  COUPON = 'COUPON',
-  SALE = 'SALE',
-  SPECIAL_OFFER = 'SPECIAL_OFFER',
+// Updated to match Prisma schema PromotionType enum
+export enum PromotionTypeEnum {
+  PERCENTAGE_DISCOUNT = 'PERCENTAGE_DISCOUNT',
   FLASH_SALE = 'FLASH_SALE',
-  BUNDLE = 'BUNDLE',
+  COUPON_BASED = 'COUPON_BASED',
+  BOGO = 'BOGO',
+  FREE_SHIPPING = 'FREE_SHIPPING',
+  FLAT_DISCOUNT = 'FLAT_DISCOUNT',
 }
 
-export enum TargetAudience {
-  ALL = 'ALL',
-  NEW_CUSTOMERS = 'NEW_CUSTOMERS',
-  RETURNING_CUSTOMERS = 'RETURNING_CUSTOMERS',
-  VIP = 'VIP',
+// Updated to match Prisma schema CouponType enum
+export enum CouponTypeEnum {
+  PERCENTAGE_DISCOUNT = 'PERCENTAGE_DISCOUNT',
+  FIXED_AMOUNT = 'FIXED_AMOUNT',
+  FREE_SHIPPING = 'FREE_SHIPPING',
+  MINIMUM_PURCHASE_DISCOUNT = 'MINIMUM_PURCHASE_DISCOUNT',
+  LIMITED_TIME_DISCOUNT = 'LIMITED_TIME_DISCOUNT',
+  BULK_PURCHASE_DISCOUNT = 'BULK_PURCHASE_DISCOUNT',
 }
+
+// Register the enums for GraphQL
+registerEnumType(PromotionTypeEnum, { name: 'PromotionTypeEnum' });
+registerEnumType(CouponTypeEnum, { name: 'CouponTypeEnum' });
+registerEnumType(SpenderType, { name: 'SpenderType' });
 
 @InputType()
 export class CreateCouponInput {
@@ -36,14 +42,9 @@ export class CreateCouponInput {
   @IsString()
   @IsOptional()
   description?: string;
-
   @Field(() => Float)
   @IsNumber()
   discountValue: number;
-
-  @Field()
-  @IsEnum(DiscountType)
-  discountType: DiscountType;
 
   @Field()
   @IsDateString()
@@ -62,6 +63,7 @@ export class CreateCouponInput {
   @IsNumber()
   @IsOptional()
   maxUsage?: number;
+
   @Field(() => Int, { nullable: true })
   @IsNumber()
   @IsOptional()
@@ -82,15 +84,25 @@ export class CreateCouponInput {
   @IsOptional()
   imageUrl?: string;
 
-  @Field({ nullable: true })
-  @IsEnum(PromotionType)
+  // New fields for better differentiation
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
   @IsOptional()
-  promotionType?: PromotionType;
+  isPromotion?: boolean;
 
-  @Field({ nullable: true })
-  @IsEnum(TargetAudience)
+  @Field(() => PromotionTypeEnum, { nullable: true })
+  @IsEnum(PromotionTypeEnum)
   @IsOptional()
-  targetAudience?: TargetAudience;
+  promotionType?: PromotionTypeEnum;
+
+  @Field(() => CouponTypeEnum, { nullable: true })
+  @IsEnum(CouponTypeEnum)
+  @IsOptional()
+  couponType?: CouponTypeEnum;
+  @Field(() => [SpenderType], { nullable: true })
+  @IsArray()
+  @IsOptional()
+  targetSpenderTypes?: SpenderType[];
 
   @Field()
   @IsString()

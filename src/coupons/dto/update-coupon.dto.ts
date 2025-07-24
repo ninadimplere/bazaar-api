@@ -1,6 +1,7 @@
 import { InputType, Field, Int, Float } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, IsEnum, IsArray } from 'class-validator';
-import { DiscountType, PromotionType, TargetAudience } from './create-coupon.dto';
+import { PromotionTypeEnum, CouponTypeEnum } from './create-coupon.dto';
+import { SpenderType } from '@prisma/client';
 
 @InputType()
 export class UpdateCouponInput {
@@ -18,16 +19,10 @@ export class UpdateCouponInput {
   @IsString()
   @IsOptional()
   description?: string;
-
   @Field(() => Float, { nullable: true })
   @IsNumber()
   @IsOptional()
   discountValue?: number;
-
-  @Field({ nullable: true })
-  @IsEnum(DiscountType)
-  @IsOptional()
-  discountType?: DiscountType;
 
   @Field({ nullable: true })
   @IsDateString()
@@ -62,21 +57,29 @@ export class UpdateCouponInput {
   @IsArray()
   @IsOptional()
   applicableCategoryIds?: number[];
-
   @Field({ nullable: true })
   @IsString()
   @IsOptional()
   imageUrl?: string;
 
-  @Field({ nullable: true })
-  @IsEnum(PromotionType)
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
   @IsOptional()
-  promotionType?: PromotionType;
+  isPromotion?: boolean;
 
-  @Field({ nullable: true })
-  @IsEnum(TargetAudience)
+  @Field(() => PromotionTypeEnum, { nullable: true })
+  @IsEnum(PromotionTypeEnum)
   @IsOptional()
-  targetAudience?: TargetAudience;
+  promotionType?: PromotionTypeEnum;
+
+  @Field(() => CouponTypeEnum, { nullable: true })
+  @IsEnum(CouponTypeEnum)
+  @IsOptional()
+  couponType?: CouponTypeEnum;
+  @Field(() => [SpenderType], { nullable: true })
+  @IsArray()
+  @IsOptional()
+  targetSpenderTypes?: SpenderType[];
 
   @Field({ nullable: true })
   @IsBoolean()

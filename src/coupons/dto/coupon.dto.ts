@@ -1,24 +1,14 @@
 import { InputType, Field, Int, Float } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional, IsBoolean, IsArray, IsDate, IsEnum } from 'class-validator';
 
-export enum DiscountType {
-  PERCENTAGE = 'PERCENTAGE',
-  FIXED = 'FIXED',
-}
-
+// These enums are now deprecated and should not be used in new code
+// Use the enums from create-coupon.dto.ts instead
 export enum PromotionType {
   COUPON = 'COUPON',
   SALE = 'SALE',
   SPECIAL_OFFER = 'SPECIAL_OFFER',
   FLASH_SALE = 'FLASH_SALE',
   BUNDLE = 'BUNDLE',
-}
-
-export enum TargetAudience {
-  ALL = 'ALL',
-  NEW_CUSTOMERS = 'NEW_CUSTOMERS',
-  RETURNING_CUSTOMERS = 'RETURNING_CUSTOMERS',
-  VIP = 'VIP',
 }
 
 @InputType()
@@ -36,14 +26,9 @@ export class CreateCouponInput {
   @IsString()
   @IsOptional()
   description?: string;
-
   @Field(() => Float)
   @IsNumber()
   discountValue: number;
-
-  @Field()
-  @IsEnum(DiscountType)
-  discountType: string;
 
   @Field()
   @IsDate()
@@ -77,7 +62,6 @@ export class CreateCouponInput {
   @IsArray()
   @IsOptional()
   applicableCategoryIds?: number[];
-
   @Field({ nullable: true })
   @IsString()
   @IsOptional()
@@ -87,11 +71,6 @@ export class CreateCouponInput {
   @IsEnum(PromotionType)
   @IsOptional()
   promotionType?: string;
-
-  @Field({ nullable: true })
-  @IsEnum(TargetAudience)
-  @IsOptional()
-  targetAudience?: string;
 
   @Field()
   @IsString()
@@ -114,16 +93,10 @@ export class UpdateCouponInput {
   @IsString()
   @IsOptional()
   description?: string;
-
   @Field(() => Float, { nullable: true })
   @IsNumber()
   @IsOptional()
   discountValue?: number;
-
-  @Field({ nullable: true })
-  @IsEnum(DiscountType)
-  @IsOptional()
-  discountType?: string;
 
   @Field({ nullable: true })
   @IsDate()
@@ -169,12 +142,6 @@ export class UpdateCouponInput {
   @IsEnum(PromotionType)
   @IsOptional()
   promotionType?: string;
-
-  @Field({ nullable: true })
-  @IsEnum(TargetAudience)
-  @IsOptional()
-  targetAudience?: string;
-
   @Field({ nullable: true })
   @IsBoolean()
   @IsOptional()

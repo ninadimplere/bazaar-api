@@ -1,12 +1,7 @@
 import { ObjectType, Field, Int, registerEnumType } from '@nestjs/graphql';
+import { SpenderType } from '@prisma/client';
 
-export enum SpenderType {
-  NEW = 'NEW',
-  ONE_TIME = 'ONE_TIME',
-  FREQUENT = 'FREQUENT',
-  HIGH_SPENDER = 'HIGH_SPENDER',
-}
-
+// Register the Prisma enum for GraphQL
 registerEnumType(SpenderType, {
   name: 'SpenderType',
   description: 'User spending behavior classification',
