@@ -21,6 +21,7 @@ import { BrandCategoryModule } from 'brand/brand-category/brand-category.module'
 import { ProductModule } from 'product/product.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ScheduledTasksService } from './common/scheduled-tasks.service';
+import { ReviewsModule } from 'review/review.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ScheduledTasksService } from './common/scheduled-tasks.service';
     BrandModule,
     BrandCategoryModule,
     ProductModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService, ScheduledTasksService],

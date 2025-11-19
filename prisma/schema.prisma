@@ -99,13 +99,16 @@ model User {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  reviews      Review[]
-  coupons      Coupon[] // Relation to Coupon (created by the user)
-  bankAccounts BankAccount[] // Relation to BankAccount
-  addresses    Address[] // Relation to Address
-  seller       Seller? // Relation to Seller
-  orders       Order[] // Relation to Order
+  // Reviews GIVEN by this User (Buyer)
+  sellerReviews SellerReview[] // Relation to SellerReview (Reviews the user has given)
+
+  coupons      Coupon[]
+  bankAccounts BankAccount[]
+  addresses    Address[]
+  seller       Seller?
+  orders       Order[]
   UserProfile  UserProfile?
+  reviews      Review[]
 }
 
 model BankAccount {
@@ -161,8 +164,11 @@ model Seller {
   createdAt          DateTime            @default(now())
   approvedBy         String?
   updatedAt          DateTime            @updatedAt
-  SellerOrder        SellerOrder[]
-  Product            Product[]
+
+  SellerOrder SellerOrder[]
+  Product     Product[]
+  // Reviews RECEIVED by this Seller
+  reviews     SellerReview[] // Relation to SellerReview (Reviews received by the seller)
 }
 
 model Category {
@@ -282,6 +288,7 @@ model Order {
   returnRequests  ReturnRequest[] // Relation to ReturnRequest
   cancelRequests  CancelRequest[] // Relation to CancelRequest
   SellerOrder     SellerOrder[]
+  sellerReview    SellerReview?
 
   @@index([id])
 }
@@ -299,30 +306,30 @@ model OrderProduct {
 }
 
 model Coupon {
-  id                 Int           @id @default(autoincrement())
-  code               String        @unique
-  title              String? // Title for the promotion
-  description        String? // Description of the coupon or promotion
-  discountValue      Float
-  validFrom          DateTime
-  validTo            DateTime
-  minPurchaseAmount  Float?
-  maxUsage           Int?
-  usageCount         Int           @default(0) // Track how many times this coupon has been used
-  perCustomerLimit   Int?
-  isActive           Boolean       @default(true) // Whether this coupon is currently active
-  applicableProducts Product[]     @relation("ProductCoupons") // Relation to multiple products
-  applicableCategories Category[]  @relation("CategoryCoupons") // Relation to categories
-  createdBy          String // Seller ID
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  imageUrl           String? // Image for promotion display
-  
+  id                   Int        @id @default(autoincrement())
+  code                 String     @unique
+  title                String? // Title for the promotion
+  description          String? // Description of the coupon or promotion
+  discountValue        Float
+  validFrom            DateTime
+  validTo              DateTime
+  minPurchaseAmount    Float?
+  maxUsage             Int?
+  usageCount           Int        @default(0) // Track how many times this coupon has been used
+  perCustomerLimit     Int?
+  isActive             Boolean    @default(true) // Whether this coupon is currently active
+  applicableProducts   Product[]  @relation("ProductCoupons") // Relation to multiple products
+  applicableCategories Category[] @relation("CategoryCoupons") // Relation to categories
+  createdBy            String // Seller ID
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  imageUrl             String? // Image for promotion display
+
   // Fields for differentiation between coupons and promotions
-  isPromotion        Boolean       @default(false) // True if it's a promotion, false if it's a coupon
-  couponType         CouponType?   // Type of coupon if isPromotion is false
-  promotionType      PromotionType? // Type of promotion if isPromotion is true
-  
+  isPromotion   Boolean        @default(false) // True if it's a promotion, false if it's a coupon
+  couponType    CouponType? // Type of coupon if isPromotion is false
+  promotionType PromotionType? // Type of promotion if isPromotion is true
+
   // Target audience segmentation
   targetSpenderTypes SpenderType[] // Which spender types this coupon/promotion is for
 
@@ -378,4 +385,21 @@ model UserProfile {
   profileImage String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model SellerReview {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [userId])
+  orderId   Int      @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  rating    Int      @default(0)
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId])
+  @@index([userId])
 }
